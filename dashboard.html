@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Otto Strategic — Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --gold:#C8A97E;--gold-dim:#8A6E4E;--gold-light:#E8C49E;
+  --bg:#080A0C;--surface:#0E1114;--surface2:#12161A;
+  --border:#1C2026;--border-b:#2A3040;
+  --text:#E8EAF0;--text-dim:#6B7280;--text-mid:#9CA3AF;
+  --green:#4EE080;--red:#E05A4E;--amber:#E0A84E;--blue:#60A5FA;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.6;min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* ── SPLASH ── */
+#splash{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:20px;transition:opacity 0.4s}
+#splash.hidden{opacity:0;pointer-events:none;display:none}
+.s-mark{width:48px;height:48px;border:1px solid var(--gold);display:grid;place-items:center;font-size:14px;color:var(--gold);position:relative;animation:sp 2s ease infinite}
+.s-mark::before{content:'';position:absolute;inset:5px;border:1px solid rgba(200,169,126,0.2)}
+.s-txt{font-size:11px;color:var(--text-dim);letter-spacing:0.15em;text-transform:uppercase}
+@keyframes sp{0%,100%{box-shadow:0 0 0 0 rgba(200,169,126,0.2)}50%{box-shadow:0 0 0 12px transparent}}
+
+/* ── LOGIN ── */
+#login-page{min-height:100vh;display:none;grid-template-columns:1fr 1fr}
+#login-page.active{display:grid}
+.ll{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;padding:48px;position:relative;overflow:hidden}
+.ll::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(28,32,38,0.6) 1px,transparent 1px),linear-gradient(90deg,rgba(28,32,38,0.6) 1px,transparent 1px);background-size:40px 40px}
+.ll-glow{position:absolute;bottom:-50px;left:-50px;width:400px;height:400px;background:radial-gradient(circle,rgba(200,169,126,0.07) 0%,transparent 70%);pointer-events:none}
+.ll-brand{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.ll-mark{width:36px;height:36px;border:1px solid var(--gold);display:grid;place-items:center;font-size:12px;color:var(--gold);font-weight:500;position:relative}
+.ll-mark::before{content:'';position:absolute;inset:4px;border:1px solid rgba(200,169,126,0.2)}
+.ll-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase}
+.ll-name span{color:var(--gold)}
+.ll-mid{position:relative;z-index:1}
+.ll-h{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;line-height:1.05;margin-bottom:20px}
+.ll-h em{font-style:italic;color:var(--gold)}
+.ll-sub{color:var(--text-dim);font-size:12px;line-height:1.8;max-width:360px}
+.ll-status{display:flex;flex-direction:column;gap:10px;position:relative;z-index:1}
+.si{display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid var(--border);background:rgba(8,10,12,0.5)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.g{background:var(--green);box-shadow:0 0 6px rgba(78,224,128,0.4);animation:dp 2s infinite}
+.dot.a{background:var(--amber)}
+@keyframes dp{0%,100%{opacity:1}50%{opacity:0.4}}
+.si-lbl{font-size:11px;color:var(--text-dim);letter-spacing:0.08em}
+.si-val{margin-left:auto;font-size:11px;color:var(--text-mid)}
+
+.lr{display:flex;align-items:center;justify-content:center;padding:48px;background:var(--bg)}
+.lf{width:100%;max-width:380px}
+.lf-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;margin-bottom:8px}
+.lf-sub{color:var(--text-dim);font-size:12px;margin-bottom:40px;line-height:1.6}
+.fg{margin-bottom:20px}
+.fl{display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px}
+.fi{width:100%;background:var(--surface);border:1px solid var(--border-b);color:var(--text);padding:13px 16px;font-family:'IBM Plex Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+.fi:focus{border-color:var(--gold)}
+.fi::placeholder{color:var(--text-dim)}
+.pw-wrap{position:relative}
+.pw-wrap .fi{padding-right:52px}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);cursor:pointer;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.2s;background:none;border:none;outline:none;font-family:'IBM Plex Mono',monospace}
+.pw-toggle:hover{color:var(--gold)}
+.ferr{font-size:11px;color:var(--red);margin-top:8px;display:none;align-items:center;gap:6px;line-height:1.5}
+.ferr.on{display:flex}
+.fsub{width:100%;background:var(--gold);color:var(--bg);border:none;padding:15px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.fsub:hover:not(:disabled){background:var(--gold-light)}
+.fsub:disabled{opacity:0.55;cursor:not-allowed}
+.spinner{width:12px;height:12px;border:1.5px solid rgba(8,10,12,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin 0.7s linear infinite;display:none}
+.fsub.loading .spinner{display:block}
+.fsub.loading .bl{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lback{display:block;text-align:center;margin-top:24px;font-size:11px;color:var(--text-dim);letter-spacing:0.08em;transition:color 0.2s}
+.lback:hover{color:var(--gold)}
+
+/* ── DASHBOARD ── */
+#dash-page{display:none;min-height:100vh}
+#dash-page.active{display:block}
+.d-layout{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:20px;border-bottom:1px solid var(--border)}
+.sb-mark{width:26px;height:26px;border:1px solid var(--gold);display:grid;place-items:center;font-size:10px;color:var(--gold);position:relative;flex-shrink:0}
+.sb-mark::before{content:'';position:absolute;inset:3px;border:1px solid rgba(200,169,126,0.15)}
+.sb-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:300;letter-spacing:0.15em;text-transform:uppercase}
+.sb-name span{color:var(--gold)}
+/* admin badge */
+.sb-admin-badge{background:rgba(200,169,126,0.12);border:1px solid rgba(200,169,126,0.3);color:var(--gold);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;padding:2px 8px;margin-left:auto;white-space:nowrap}
+/* package badge */
+.sb-pkg{font-size:8px;letter-spacing:0.12em;text-transform:uppercase;padding:2px 7px;border:1px solid;margin-left:auto}
+.pkg-demo{color:var(--text-dim);border-color:var(--border-b)}
+.pkg-silver{color:var(--text-mid);border-color:rgba(156,163,175,0.4)}
+.pkg-gold{color:var(--gold);border-color:rgba(200,169,126,0.4)}
+.pkg-platinum{color:var(--gold-light);border-color:rgba(232,196,158,0.5)}
+
+.sb-nav{flex:1;padding:14px 0;overflow-y:auto}
+.sb-sec{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);padding:0 20px;margin-bottom:4px;margin-top:18px}
+.sb-sec:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:var(--text-dim);cursor:pointer;transition:all 0.2s;font-size:12px;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(200,169,126,0.05)}
+.nav-item.locked{opacity:0.35;cursor:not-allowed}
+.nav-icon{width:16px;text-align:center;font-size:13px;flex-shrink:0}
+.nb{margin-left:auto;background:var(--gold);color:var(--bg);font-size:9px;padding:2px 6px;font-weight:500;min-width:18px;text-align:center}
+.nb.red{background:var(--red);color:#fff}
+.nb.hide{display:none}
+
+/* demo countdown */
+.demo-bar{margin:12px 16px;padding:10px 12px;border:1px solid rgba(224,168,78,0.3);background:rgba(224,168,78,0.05)}
+.demo-bar-lbl{font-size:9px;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.demo-bar-days{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--amber)}
+.demo-bar-sub{font-size:9px;color:var(--text-dim);letter-spacing:0.06em}
+/* voice quota */
+.voice-bar{margin:8px 16px 12px;padding:10px 12px;border:1px solid rgba(200,169,126,0.2);background:rgba(200,169,126,0.03)}
+.voice-lbl{font-size:9px;color:var(--gold-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.voice-track{height:3px;background:var(--border);position:relative}
+.voice-fill{height:100%;background:var(--gold);transition:width 0.4s}
+.voice-info{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:var(--text-dim)}
+
+.sb-footer{padding:14px 20px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sb-avatar{width:28px;height:28px;border:1px solid var(--border-b);display:grid;place-items:center;font-size:11px;color:var(--gold);flex-shrink:0}
+.sb-uname{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-urole{font-size:9px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase}
+.sb-logout{width:100%;background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;text-align:center}
+.sb-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* MAIN */
+.d-main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.d-topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--border);background:rgba(8,10,12,0.92);backdrop-filter:blur(10px);position:sticky;top:0;z-index:40}
+.d-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300}
+.d-topbar-r{display:flex;align-items:center;gap:20px}
+.sys-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim)}
+.sys-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px rgba(78,224,128,0.5);animation:dp 2s infinite}
+.topbar-date{font-size:11px;color:var(--text-dim)}
+
+.d-content{padding:28px 32px;flex:1}
+.d-section{display:none}
+.d-section.active{display:block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:28px}
+.kpi-card{background:var(--surface);padding:24px 22px;position:relative;overflow:hidden;transition:background 0.2s}
+.kpi-card:hover{background:#111418}
+.kpi-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width 0.4s ease}
+.kpi-card:hover::after{width:100%}
+.kpi-lbl{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;line-height:1;margin-bottom:6px}
+.kpi-unit{font-size:20px;color:var(--gold)}
+.kpi-sub{font-size:11px;color:var(--text-dim)}
+.kpi-sub.up{color:var(--green)}
+.kpi-sub.down{color:var(--red)}
+
+/* PANELS */
+.d-grid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--border);overflow:hidden}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.ph-title{font-size:12px;letter-spacing:0.07em;color:var(--text);font-weight:500}
+.ph-meta{font-size:10px;color:var(--text-dim)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);padding:10px 20px;text-align:left;border-bottom:1px solid var(--border);font-weight:400;white-space:nowrap}
+.tbl td{padding:13px 20px;border-bottom:1px solid var(--border);font-size:12px}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.012)}
+.t-time{color:var(--gold);font-size:11px;white-space:nowrap}
+.t-main{color:var(--text);font-weight:500}
+.t-sec{color:var(--text-mid);font-size:11px}
+.ch-tag{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border:1px solid;display:inline-block;white-space:nowrap}
+.ch-whatsapp{border-color:rgba(78,224,128,0.35);color:#4EE080}
+.ch-web_form{border-color:rgba(224,168,78,0.35);color:var(--amber)}
+.ch-voice{border-color:rgba(200,169,126,0.35);color:var(--gold)}
+.ch-manual{border-color:var(--border-b);color:var(--text-dim)}
+.st-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px}
+.st-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.s-confirmed .st-dot,.s-reminded_24h .st-dot,.s-reminded_2h .st-dot{background:var(--green)}
+.s-pending .st-dot{background:var(--amber)}
+.s-cancelled .st-dot,.s-no_show .st-dot{background:var(--red)}
+.s-completed .st-dot{background:var(--text-dim)}
+
+/* ACTIVITY */
+.act-item{display:flex;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);transition:background 0.15s}
+.act-item:last-child{border-bottom:none}
+.act-item:hover{background:rgba(255,255,255,0.015)}
+.act-icon{width:26px;height:26px;border:1px solid var(--border-b);display:grid;place-items:center;font-size:11px;flex-shrink:0;margin-top:1px}
+.act-body{flex:1;min-width:0}
+.act-text{font-size:11px;color:var(--text-mid);line-height:1.5;margin-bottom:2px}
+.act-text strong{color:var(--text);font-weight:500}
+.act-time{font-size:10px;color:var(--text-dim)}
+
+/* CALENDAR */
+.mini-cal{padding:14px 20px}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-month{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300}
+.cal-nav{display:flex;gap:4px}
+.cal-btn{background:none;border:1px solid var(--border);color:var(--text-dim);width:24px;height:24px;cursor:pointer;font-size:11px;transition:all 0.2s;font-family:'IBM Plex Mono',monospace;display:grid;place-items:center}
+.cal-btn:hover{border-color:var(--gold);color:var(--gold)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal-dh{font-size:9px;color:var(--text-dim);padding:3px 0;letter-spacing:0.07em}
+.cal-d{font-size:11px;padding:5px 4px;cursor:pointer;transition:all 0.15s;position:relative}
+.cal-d:hover{background:rgba(200,169,126,0.1);color:var(--gold)}
+.cal-d.today{background:var(--gold);color:var(--bg);font-weight:500}
+.cal-d.has-apt::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--gold);opacity:0.7}
+.cal-d.today.has-apt::after{background:var(--bg)}
+.cal-d.other{opacity:0.22;pointer-events:none}
+
+/* ADMIN PANEL */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pkg-badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pkg-b{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:4px 10px;border:1px solid;cursor:default}
+.pkg-b.demo{color:var(--text-dim);border-color:var(--border-b)}
+.pkg-b.silver{color:var(--text-mid);border-color:rgba(156,163,175,0.4)}
+.pkg-b.gold{color:var(--gold);border-color:rgba(200,169,126,0.4)}
+.pkg-b.platinum{color:var(--gold-light);border-color:rgba(232,196,158,0.5)}
+.fi-wrap{display:flex;flex-direction:column;gap:14px}
+.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-note{font-size:10px;color:var(--text-dim);letter-spacing:0.06em;min-height:16px;line-height:1.5}
+.btn-gold{background:var(--gold);color:var(--bg);border:none;padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px}
+.btn-gold:hover{background:var(--gold-light)}
+.btn-ghost-s{background:none;border:1px solid var(--border-b);color:var(--text-dim);padding:6px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-ghost-s:hover{border-color:var(--gold);color:var(--gold)}
+
+/* LOCKED OVERLAY */
+.locked-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;gap:12px}
+.locked-icon{font-size:32px;opacity:0.3}
+.locked-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--text-mid)}
+.locked-sub{font-size:11px;color:var(--text-dim);line-height:1.7;max-width:280px}
+.locked-pkg{display:inline-block;margin-top:8px;padding:6px 16px;border:1px solid rgba(200,169,126,0.3);color:var(--gold);font-size:10px;letter-spacing:0.12em;text-transform:uppercase}
+
+/* EMPTY / LOADING */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 20px;color:var(--text-dim);text-align:center;gap:10px}
+.empty-i{font-size:28px;opacity:0.35}
+.empty-t{font-size:12px;line-height:1.7;max-width:260px}
+.loading-r{padding:20px;text-align:center;color:var(--text-dim);font-size:11px;letter-spacing:0.1em}
+
+/* TOAST */
+#toast{position:fixed;bottom:32px;right:32px;z-index:9999;padding:14px 20px;border:1px solid var(--border-b);background:var(--surface2);font-size:12px;letter-spacing:0.04em;transform:translateY(20px);opacity:0;transition:all 0.3s ease;max-width:320px;line-height:1.5}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{border-color:rgba(78,224,128,0.4);color:var(--green)}
+#toast.err{border-color:rgba(224,90,78,0.4);color:var(--red)}
+#toast.warn{border-color:rgba(224,168,78,0.4);color:var(--amber)}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.d-grid{grid-template-columns:1fr}.admin-grid{grid-template-columns:1fr}}
+@media(max-width:768px){#login-page.active{grid-template-columns:1fr}.ll{display:none}.sidebar{display:none}.d-main{margin-left:0}.d-content{padding:20px}}
+</style>
+</head>
+<body>
+
+<!-- ══ SEKTÖR SEÇİM EKRANI ══ -->
+<div id="sp" style="display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:40px;padding:40px 20px">
+  <div style="text-align:center">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;margin-bottom:8px"><span style="color:#C8A97E">Otto</span> Strategic</div>
+    <div style="font-size:11px;color:#6B7280;letter-spacing:0.15em;text-transform:uppercase">Sektörünüzü Seçin</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:760px;width:100%">
+    <div class="sec-card" onclick="selectSector('clinic')" data-sector="clinic" style="background:#0E1114;border:1px solid #1C2026;padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.25s">
+      <div style="font-size:34px;margin-bottom:12px">&#x1F9B7;</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:300;margin-bottom:6px">Klinik &amp; Sağlık</div>
+      <div style="font-size:11px;color:#6B7280;line-height:1.6">Diş · Estetik · Genel<br>Randevu &amp; Hasta Yönetimi</div>
+    </div>
+    <div class="sec-card" onclick="selectSector('hair')" data-sector="hair" style="background:#0E1114;border:1px solid #1C2026;padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.25s">
+      <div style="font-size:34px;margin-bottom:12px">&#x1F9D6;</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:300;margin-bottom:6px">Saç Ekim Merkezi</div>
+      <div style="font-size:11px;color:#6B7280;line-height:1.6">Danışan · Seans · Uzman<br>Operasyon Yönetimi</div>
+    </div>
+    <div class="sec-card" onclick="selectSector('logistics')" data-sector="logistics" style="background:#0E1114;border:1px solid #1C2026;padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.25s">
+      <div style="font-size:34px;margin-bottom:12px">&#x1F69B;</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:300;margin-bottom:6px">Lojistik &amp; Depo</div>
+      <div style="font-size:11px;color:#6B7280;line-height:1.6">Müşteri · Teslimat · Rota<br>Filo &amp; Depo Yönetimi</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:760px;width:100%">
+    <div style="background:#0E1114;border:1px dashed #1C2026;padding:20px;text-align:center;opacity:0.35;cursor:not-allowed">
+      <div style="font-size:26px;margin-bottom:8px">&#x1F3E5;</div>
+      <div style="font-size:12px;color:#6B7280">Hastane Zinciri<br><span style="font-size:9px;color:#C8A97E;letter-spacing:0.1em;text-transform:uppercase">Yak&#x131;nda</span></div>
+    </div>
+    <div style="background:#0E1114;border:1px dashed #1C2026;padding:20px;text-align:center;opacity:0.35;cursor:not-allowed">
+      <div style="font-size:26px;margin-bottom:8px">&#x1F3EA;</div>
+      <div style="font-size:12px;color:#6B7280">Güzellik &amp; Spa<br><span style="font-size:9px;color:#C8A97E;letter-spacing:0.1em;text-transform:uppercase">Yak&#x131;nda</span></div>
+    </div>
+    <div style="background:#0E1114;border:1px dashed #1C2026;padding:20px;text-align:center;opacity:0.35;cursor:not-allowed">
+      <div style="font-size:26px;margin-bottom:8px">&#x1F3D7;</div>
+      <div style="font-size:12px;color:#6B7280">İnşaat &amp; Proje<br><span style="font-size:9px;color:#C8A97E;letter-spacing:0.1em;text-transform:uppercase">Yak&#x131;nda</span></div>
+    </div>
+  </div>
+  <a href="/" style="font-size:11px;color:#6B7280;text-decoration:none;letter-spacing:0.08em">&#x2190; Ana Sayfaya Dön</a>
+</div>
+<style>
+.sec-card:hover{border-color:#C8A97E!important;background:#111418!important;transform:translateY(-2px)}
+.sec-card.selected{border-color:#C8A97E!important;background:rgba(200,169,126,0.06)!important}
+</style>
+
+<!-- SPLASH -->
+<div id="splash"><div class="s-mark">OS</div><div class="s-txt">Otto Başlatılıyor</div></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ════════════════ LOGIN ════════════════ -->
+<div id="login-page">
+  <div class="ll">
+    <div class="ll-glow"></div>
+    <div class="ll-brand">
+      <div class="ll-mark">OS</div>
+      <div class="ll-name"><span>Otto</span> Strategic</div>
+    </div>
+    <div class="ll-mid">
+      <div class="ll-h">Operasyon<br><em>kontrol</em><br>paneliniz.</div>
+      <div class="ll-sub">Randevularınızı, hasta akışınızı ve sistem durumunu tek ekrandan yönetin.</div>
+    </div>
+    <div class="ll-status">
+      <div class="si"><div class="dot g"></div><span class="si-lbl">WhatsApp Otto</span><span class="si-val">Aktif</span></div>
+      <div class="si"><div class="dot g"></div><span class="si-lbl">Randevu Sistemi</span><span class="si-val">Çalışıyor</span></div>
+      <div class="si"><div class="dot a"></div><span class="si-lbl">Sesli Asistan</span><span class="si-val">Gold+</span></div>
+    </div>
+  </div>
+  <div class="lr">
+    <div class="lf">
+      <div class="lf-title">Giriş Yap</div>
+      <div class="lf-sub">Otto Strategic müşteri paneline hoş geldiniz.</div>
+      <div class="fg">
+        <label class="fl" for="em">E-posta Adresi</label>
+        <input class="fi" type="email" id="em" placeholder="ornek@klinik.com" autocomplete="email">
+      </div>
+      <div class="fg">
+        <label class="fl" for="pw">Şifre</label>
+        <div class="pw-wrap">
+          <input class="fi" type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
+          <button class="pw-toggle" type="button" id="pwt">gör</button>
+        </div>
+        <div class="ferr" id="lerr"><span>⚠</span>&nbsp;<span id="lerrtxt">Hatalı e-posta veya şifre.</span></div>
+      </div>
+      <button class="fsub" id="lbtn" type="button">
+        <span class="bl">Giriş Yap</span><div class="spinner"></div>
+      </button>
+      <a href="/" class="lback">← Ana Sayfaya Dön</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ DASHBOARD ════════════════ -->
+<div id="dash-page">
+  <div class="d-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <div class="sb-mark">OS</div>
+        <div class="sb-name"><span>Otto</span></div>
+        <span class="god-badge" id="sbAdminBadge" style="display:none">★ GOD MODE</span>
+        <span class="sb-pkg" id="sbPkgBadge" style="display:none"></span>
+      </div>
+
+      <nav class="sb-nav" id="sbNav">
+        <!-- Dinamik olarak doldurulacak -->
+      </nav>
+
+      <!-- Demo countdown -->
+      <div class="demo-bar" id="demoBar" style="display:none">
+        <div class="demo-bar-lbl">Demo Süresi</div>
+        <div class="demo-bar-days" id="demoDays">—</div>
+        <div class="demo-bar-sub">gün kaldı · 7 günlük deneme</div>
+      </div>
+
+      <!-- Voice quota -->
+      <div class="voice-bar" id="voiceBar" style="display:none">
+        <div class="voice-lbl">Sesli Asistan Kotası</div>
+        <div class="voice-track"><div class="voice-fill" id="voiceFill" style="width:0%"></div></div>
+        <div class="voice-info">
+          <span id="voiceUsed">0 dk kullanıldı</span>
+          <span id="voiceTotal">— dk limit</span>
+        </div>
+      </div>
+
+      <div class="sb-footer">
+        <div class="sb-user">
+          <div class="sb-avatar" id="sbAvatar">K</div>
+          <div>
+            <div class="sb-uname" id="sbName">—</div>
+            <div class="sb-urole" id="sbRole">Yükleniyor</div>
+          </div>
+        </div>
+        <button class="sb-logout" id="logoutBtn">Çıkış Yap</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="d-main">
+      <div class="d-topbar">
+        <div class="d-title" id="pageTitle">Genel Bakış</div>
+        <div class="d-topbar-r">
+          <div class="sys-status"><div class="sys-dot"></div><span>Sistem Aktif</span></div>
+          <div class="topbar-date" id="topDate"></div>
+        </div>
+      </div>
+
+      <div class="d-content">
+
+        <!-- ── GENEL BAKIŞ ── -->
+        <div class="d-section active" id="sec-overview">
+          <div class="kpi-grid" id="kpiGrid">
+            <div class="kpi-card"><div class="kpi-lbl">Bugünkü Randevular</div><div class="kpi-val" id="k1">—</div><div class="kpi-sub" id="k1s">Yükleniyor</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Doluluk Oranı</div><div class="kpi-val" id="k2">—<span class="kpi-unit">%</span></div><div class="kpi-sub" id="k2s">Yükleniyor</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Bekleyen Talepler</div><div class="kpi-val" id="k3">—</div><div class="kpi-sub" id="k3s">Yükleniyor</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Bu Hafta</div><div class="kpi-val" id="k4">—</div><div class="kpi-sub" id="k4s">Yükleniyor</div></div>
+          </div>
+          <div class="d-grid">
+            <div class="panel">
+              <div class="ph"><span class="ph-title">Bugünkü Randevular</span><span class="ph-meta" id="aptMeta"></span></div>
+              <div id="aptWrap"><div class="loading-r">Yükleniyor...</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div class="panel">
+                <div class="ph"><span class="ph-title">Son Aktivite</span></div>
+                <div id="actWrap"><div class="loading-r">Yükleniyor...</div></div>
+              </div>
+              <div class="panel">
+                <div class="ph">
+                  <span class="ph-title">Takvim</span>
+                  <div class="cal-nav">
+                    <button class="cal-btn" id="calPrev">‹</button>
+                    <button class="cal-btn" id="calNext">›</button>
+                  </div>
+                </div>
+                <div class="mini-cal">
+                  <div class="cal-hdr"><span class="cal-month" id="calMonth"></span></div>
+                  <div class="cal-grid" id="calGrid"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── RANDEVULAR ── -->
+        <div class="d-section" id="sec-appointments">
+          <div class="panel">
+            <div class="ph"><span class="ph-title">Tüm Randevular</span><span class="ph-meta" id="allAptMeta"></span></div>
+            <div id="allAptWrap"><div class="loading-r">Yükleniyor...</div></div>
+          </div>
+        </div>
+
+        <!-- ── HASTALAR ── -->
+        <div class="d-section" id="sec-patients">
+          <div class="panel">
+            <div class="ph"><span class="ph-title">Hasta Listesi</span><span class="ph-meta" id="patMeta"></span></div>
+            <div id="patWrap"><div class="loading-r">Yükleniyor...</div></div>
+          </div>
+        </div>
+
+        <!-- ── MESAJLAR ── -->
+        <div class="d-section" id="sec-messages">
+          <div class="panel">
+            <div class="ph"><span class="ph-title">Gelen Talepler</span><span class="ph-meta" id="msgMeta"></span></div>
+            <div id="msgWrap"><div class="loading-r">Yükleniyor...</div></div>
+          </div>
+        </div>
+
+        <!-- ── DOKTORLAR ── -->
+        <div class="d-section" id="sec-doctors">
+          <div class="panel">
+            <div class="ph"><span class="ph-title">Doktor Listesi</span></div>
+            <div id="docWrap"><div class="loading-r">Yükleniyor...</div></div>
+          </div>
+        </div>
+
+        <!-- ── RAPORLAR (Gold+) ── -->
+        <div class="d-section" id="sec-reports">
+          <div id="reportsContent"></div>
+        </div>
+
+        <!-- ── SESLİ ASISTAN (Gold+) ── -->
+        <div class="d-section" id="sec-voice">
+          <div id="voiceContent"></div>
+        </div>
+
+        <!-- ── ADMİN PANELİ (super_admin) ── -->
+        <div class="d-section" id="sec-admin">
+          <!-- Sistem Metrikleri -->
+          <div class="kpi-grid" style="margin-bottom:28px">
+            <div class="kpi-card"><div class="kpi-lbl">Toplam Klinik</div><div class="kpi-val" id="adK1">—</div><div class="kpi-sub" id="adK1s">aktif</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Demo Hesap</div><div class="kpi-val" id="adK2">—</div><div class="kpi-sub">7 günlük</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Silver / Gold</div><div class="kpi-val" id="adK3">—</div><div class="kpi-sub" id="adK3s">paket</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Platinum</div><div class="kpi-val" id="adK4">—</div><div class="kpi-sub">200 dk ses</div></div>
+          </div>
+
+          <div class="admin-grid">
+            <!-- YENİ MÜŞTERİ -->
+            <div class="panel">
+              <div class="ph"><span class="ph-title">Yeni Müşteri Oluştur</span></div>
+              <div style="padding:24px">
+                <div class="pkg-badge-row">
+                  <span class="pkg-b demo">Demo — 3dk ses / 7gün</span>
+                  <span class="pkg-b silver">Silver — WhatsApp</span>
+                  <span class="pkg-b gold">Gold — 60dk ses</span>
+                  <span class="pkg-b platinum">Platinum — 200dk ses</span>
+                </div>
+                <div class="fi-wrap">
+                  <div>
+                    <label class="fl">Klinik Adı *</label>
+                    <input class="fi" id="nName" placeholder="Örn: Kaya Diş Kliniği" style="width:100%">
+                  </div>
+                  <div>
+                    <label class="fl">E-posta (Giriş) *</label>
+                    <input class="fi" id="nEmail" type="email" placeholder="klinik@email.com" style="width:100%">
+                  </div>
+                  <div>
+                    <label class="fl">Telefon</label>
+                    <input class="fi" id="nPhone" placeholder="+90 5xx xxx xx xx" style="width:100%">
+                  </div>
+                  <div class="fi-row">
+                    <div>
+                      <label class="fl">Paket *</label>
+                      <select class="fi" id="nPkg" style="width:100%;cursor:pointer">
+                        <option value="demo">Demo (3dk / 7gün)</option>
+                        <option value="silver">Silver</option>
+                        <option value="gold" selected>Gold</option>
+                        <option value="platinum">Platinum (200dk)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="fl">Geçici Şifre *</label>
+                      <input class="fi" id="nPass" placeholder="Min 8 karakter" style="width:100%">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="fl">Not (opsiyonel)</label>
+                    <input class="fi" id="nNote" placeholder="Görüşme notu, referans..." style="width:100%">
+                  </div>
+                  <div class="form-note" id="nNote2"></div>
+                  <button class="btn-gold" onclick="createClient()">Müşteriyi Oluştur →</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- MÜŞTERİ LİSTESİ -->
+            <div class="panel">
+              <div class="ph">
+                <span class="ph-title">Müşteri Listesi</span>
+                <span class="ph-meta" id="cliMeta"></span>
+              </div>
+              <div id="cliList"><div class="loading-r">Yükleniyor...</div></div>
+            </div>
+          </div>
+
+          <!-- SİSTEM SAĞLIK -->
+          <div class="panel" style="margin-top:16px">
+            <div class="ph"><span class="ph-title">Sistem Sağlığı</span><span class="ph-meta" id="sysTime"></span></div>
+            <div id="sysHealth"><div class="loading-r">Yükleniyor...</div></div>
+          </div>
+        </div>
+
+        <!-- ── AYARLAR ── -->
+        <div class="d-section" id="sec-settings">
+          <div class="panel">
+            <div class="ph"><span class="ph-title">Klinik Ayarları</span></div>
+            <div id="settingsWrap"><div class="loading-r">Yükleniyor...</div></div>
+          </div>
+        </div>
+
+      
+        <!-- ══ GOD MODE SECTIONS ══ -->
+        <div class="d-section" id="sec-god-clinics">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:16px 20px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.25)">
+            <div style="width:40px;height:40px;border:1px solid rgba(167,139,250,0.4);display:grid;place-items:center;font-size:18px">🏛</div>
+            <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#A78BFA">Klinik Yönetimi</div><div style="font-size:11px;color:var(--text-dim)">Oluştur · Askıya al · Paket ata · Demo tanımla</div></div>
+          </div>
+          <div class="kpi-grid" id="gK-grid" style="margin-bottom:20px">
+            <div class="kpi-card"><div class="kpi-lbl">Toplam Klinik</div><div class="kpi-val" id="gK1">—</div><div class="kpi-sub" id="gK1s">aktif</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Demo</div><div class="kpi-val" id="gK2">—</div><div class="kpi-sub">7 günlük</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Silver / Gold</div><div class="kpi-val" id="gK3">—</div><div class="kpi-sub">paket</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Platinum</div><div class="kpi-val" id="gK4">—</div><div class="kpi-sub">200dk sesli</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Yeni Klinik Oluştur</span></div>
+              <div style="padding:24px">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+                  <span style="font-size:9px;padding:4px 10px;border:1px solid var(--border-bright);color:var(--text-dim)">Demo · 3dk · 7gün</span>
+                  <span style="font-size:9px;padding:4px 10px;border:1px solid rgba(156,163,175,0.4);color:var(--text-mid)">Silver · WhatsApp</span>
+                  <span style="font-size:9px;padding:4px 10px;border:1px solid rgba(200,169,126,0.4);color:var(--gold)">Gold · 50dk</span>
+                  <span style="font-size:9px;padding:4px 10px;border:1px solid rgba(232,196,158,0.5);color:#E8C49E">Platinum · 200dk</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <div><label class="form-label">Klinik Adı *</label><input class="form-input" id="gNm" placeholder="Örn: Kaya Diş Kliniği" style="width:100%"></div>
+                  <div><label class="form-label">E-posta (Giriş) *</label><input class="form-input" id="gEm" type="email" placeholder="klinik@email.com" style="width:100%"></div>
+                  <div><label class="form-label">Telefon</label><input class="form-input" id="gPh" placeholder="+90 5xx xxx xx xx" style="width:100%"></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div><label class="form-label">Paket *</label>
+                      <select class="form-input" id="gPkg" style="width:100%;cursor:pointer;background:var(--surface)">
+                        <option value="demo">Demo (3dk/7gün)</option>
+                        <option value="silver">Silver</option>
+                        <option value="gold" selected>Gold (50dk)</option>
+                        <option value="platinum">Platinum (200dk)</option>
+                      </select>
+                    </div>
+                    <div><label class="form-label">Geçici Şifre *</label><input class="form-input" id="gPw" placeholder="Min 8 karakter" style="width:100%"></div>
+                  </div>
+                  <div><label class="form-label">Not (Opsiyonel)</label><input class="form-input" id="gNt" placeholder="Görüşme notu..." style="width:100%"></div>
+                  <div id="gMsg" style="font-size:10px;color:var(--text-dim);min-height:16px"></div>
+                  <button onclick="godCreateClinic()" style="background:#A78BFA;color:#fff;border:none;padding:13px 20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.2s">Kliniği Oluştur →</button>
+                </div>
+              </div>
+            </div>
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Klinik Listesi</span><span class="panel-meta" id="gCliMeta"></span></div>
+              <div id="gCliList"><div class="loading-row">Yükleniyor...</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-section" id="sec-god-services">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:16px 20px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.25)">
+            <div style="width:40px;height:40px;border:1px solid rgba(167,139,250,0.4);display:grid;place-items:center;font-size:18px">⚙</div>
+            <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#A78BFA">Hizmet & Tedavi Yönetimi</div><div style="font-size:11px;color:var(--text-dim)">Platform geneline hizmet ekle / çıkar</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Yeni Hizmet Ekle</span></div>
+              <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+                <div><label class="form-label">Hizmet Adı *</label><input class="form-input" id="svNm" placeholder="Örn: Kanal Tedavisi" style="width:100%"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div><label class="form-label">Süre (dk)</label><input class="form-input" id="svDur" type="number" value="30" style="width:100%"></div>
+                  <div><label class="form-label">Buffer (dk)</label><input class="form-input" id="svBuf" type="number" value="5" style="width:100%"></div>
+                </div>
+                <div><label class="form-label">Klinik</label><select class="form-input" id="svCli" style="width:100%;cursor:pointer;background:var(--surface)"><option value="first">Mevcut klinikler...</option></select></div>
+                <div id="svMsg" style="font-size:10px;color:var(--text-dim);min-height:16px"></div>
+                <button onclick="godAddService()" style="background:var(--gold);color:var(--bg);border:none;padding:12px 20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Hizmet Ekle →</button>
+              </div>
+            </div>
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Hizmet Listesi</span><span class="panel-meta" id="gSvcMeta"></span></div>
+              <div id="gSvcList"><div class="loading-row">Yükleniyor...</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-section" id="sec-god-coo">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:16px 20px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.25)">
+            <div style="width:40px;height:40px;border:1px solid rgba(167,139,250,0.4);display:grid;place-items:center;font-size:18px">🧠</div>
+            <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#A78BFA">COO Orchestration Panel</div><div style="font-size:11px;color:var(--text-dim)">Pricing mode · Lead routing · Feature flags · Anti-ban</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Pricing Behavior Engine</span></div>
+              <div style="padding:20px">
+                <div style="margin-bottom:12px"><label class="form-label">Klinik Seç</label><select class="form-input" id="pmCli" style="width:100%;cursor:pointer;background:var(--surface)" onchange=""><option value="">— Klinik seçin —</option></select></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="pmGrid">
+                  <div style="padding:14px;border:1px solid var(--border-bright);cursor:pointer;text-align:center;transition:all 0.2s" data-mode="conservative" onclick="selPM(this)"><div style="font-size:20px;margin-bottom:6px">🛡</div><div style="font-size:11px;color:var(--text);margin-bottom:4px">Conservative</div><div style="font-size:10px;color:var(--text-dim)">Güven odaklı</div></div>
+                  <div style="padding:14px;border:1px solid var(--gold);background:rgba(200,169,126,0.06);cursor:pointer;text-align:center" data-mode="recommended" onclick="selPM(this)"><div style="font-size:20px;margin-bottom:6px">⚖</div><div style="font-size:11px;color:var(--text);margin-bottom:4px">Recommended</div><div style="font-size:10px;color:var(--text-dim)">Dengeli</div></div>
+                  <div style="padding:14px;border:1px solid var(--border-bright);cursor:pointer;text-align:center;transition:all 0.2s" data-mode="aggressive" onclick="selPM(this)"><div style="font-size:20px;margin-bottom:6px">⚡</div><div style="font-size:11px;color:var(--text);margin-bottom:4px">Aggressive</div><div style="font-size:10px;color:var(--text-dim)">Max konversiyon</div></div>
+                </div>
+                <button onclick="savePM()" style="margin-top:14px;background:var(--gold);color:var(--bg);border:none;padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Kaydet →</button>
+              </div>
+            </div>
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Feature Flags</span></div>
+              <div style="padding:16px" id="ffGrid"></div>
+            </div>
+          </div>
+          <div class="dash-panel" style="margin-top:16px">
+            <div class="panel-header"><span class="panel-title">Lead Routing & Anti-Ban</span></div>
+            <div style="padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+              <div><label class="form-label">Yüksek Niyet Lead</label><select class="form-input" style="width:100%;cursor:pointer;background:var(--surface)"><option>Hızlı Rezervasyon</option><option>Önce Onayla</option></select></div>
+              <div><label class="form-label">Düşük Niyet Lead</label><select class="form-input" style="width:100%;cursor:pointer;background:var(--surface)"><option>Nurturing</option><option>Direkt Teklif</option></select></div>
+              <div><label class="form-label">No-Show Recovery</label><select class="form-input" style="width:100%;cursor:pointer;background:var(--surface)"><option>Aktif</option><option>Pasif</option></select></div>
+              <div><label class="form-label">Sessiz Saat Başlangıç</label><input class="form-input" type="time" value="22:00" style="width:100%"></div>
+              <div><label class="form-label">Sessiz Saat Bitiş</label><input class="form-input" type="time" value="08:00" style="width:100%"></div>
+              <div><label class="form-label">Günlük Max Mesaj</label><input class="form-input" type="number" value="100" style="width:100%"></div>
+            </div>
+            <div style="padding:0 20px 20px"><button onclick="showToast('Konfigürasyon kaydedildi','ok')" style="background:var(--gold);color:var(--bg);border:none;padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Kaydet →</button></div>
+          </div>
+        </div>
+
+        <div class="d-section" id="sec-god-analytics">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:16px 20px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.25)">
+            <div style="width:40px;height:40px;border:1px solid rgba(167,139,250,0.4);display:grid;place-items:center;font-size:18px">📊</div>
+            <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#A78BFA">Platform Analytics</div><div style="font-size:11px;color:var(--text-dim)">Tüm kliniklerin finansal ve operasyonel metrikleri</div></div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:20px">
+            <div class="kpi-card"><div class="kpi-lbl">Toplam Randevu</div><div class="kpi-val" id="anK1">—</div><div class="kpi-sub">platform geneli</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Dönüşüm Oranı</div><div class="kpi-val" id="anK2">—<span class="kpi-unit">%</span></div><div class="kpi-sub">lead → randevu</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">No-Show Oranı</div><div class="kpi-val" id="anK3">—<span class="kpi-unit">%</span></div><div class="kpi-sub down">kaçırılan</div></div>
+            <div class="kpi-card"><div class="kpi-lbl">Toplam Lead</div><div class="kpi-val" id="anK4">—</div><div class="kpi-sub">tüm kanallar</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="dash-panel"><div class="panel-header"><span class="panel-title">Kanal Dağılımı</span></div><div style="padding:20px" id="chanFunnel"><div class="loading-row">Yükleniyor...</div></div></div>
+            <div class="dash-panel"><div class="panel-header"><span class="panel-title">Konversiyon Hunisi</span></div><div style="padding:20px" id="convFunnel"><div class="loading-row">Yükleniyor...</div></div></div>
+          </div>
+          <div class="dash-panel" style="margin-top:16px"><div class="panel-header"><span class="panel-title">Klinik Bazlı Performans</span></div><div id="cliPerf"><div class="loading-row">Yükleniyor...</div></div></div>
+        </div>
+
+        <div class="d-section" id="sec-god-settings">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:16px 20px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.25)">
+            <div style="width:40px;height:40px;border:1px solid rgba(167,139,250,0.4);display:grid;place-items:center;font-size:18px">🔧</div>
+            <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#A78BFA">Sistem Ayarları</div><div style="font-size:11px;color:var(--text-dim)">Paket limitleri · Global Otto kuralları · Platform sağlığı</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Paket Limitleri (Referans)</span></div>
+              <div style="padding:20px">
+                <table class="apt-table"><thead><tr><th>Paket</th><th>Sesli Otto</th><th>Süre</th><th>Max Dr.</th><th>Dashboard</th></tr></thead>
+                <tbody>
+                  <tr><td style="color:var(--text-dim)">Demo</td><td class="apt-secondary">3 dk</td><td class="apt-secondary">7 gün</td><td class="apt-secondary">1</td><td class="apt-secondary">Standart</td></tr>
+                  <tr><td style="color:var(--text-mid)">Silver</td><td class="apt-secondary">— dk</td><td class="apt-secondary">Sınırsız</td><td class="apt-secondary">2</td><td class="apt-secondary">Standart</td></tr>
+                  <tr><td style="color:var(--gold)">Gold</td><td class="apt-secondary">50 dk/ay</td><td class="apt-secondary">Sınırsız</td><td class="apt-secondary">5</td><td style="color:var(--green);font-size:11px">Gelişmiş</td></tr>
+                  <tr><td style="color:#E8C49E">Platinum</td><td class="apt-secondary">200 dk/ay</td><td class="apt-secondary">Sınırsız</td><td class="apt-secondary">Sınırsız</td><td style="color:var(--green);font-size:11px">Gelişmiş+</td></tr>
+                </tbody></table>
+              </div>
+            </div>
+            <div class="dash-panel">
+              <div class="panel-header"><span class="panel-title">Sistem Sağlığı</span><span class="panel-meta" id="sysTime"></span></div>
+              <div id="sysHealthWrap"><div class="loading-row">Yükleniyor...</div></div>
+            </div>
+          </div>
+        </div>
+</div><!-- /d-content -->
+    </main>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════
+const SB_URL  = 'https://bmukbxqwwiikchoeuomb.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdWtieHF3d2lpa2Nob2V1b21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNzYzODgsImV4cCI6MjA4OTY1MjM4OH0.ltV8PWFefjbLIQydX1k1CrT_BfQrO_yP1jQUs3QzIsE';
+
+// Paket limitleri (client-side mirror — gerçek kaynak: package_limits tablosu)
+const PKG_LIMITS = {
+  demo:     { voice_min:2,   duration_days:7,  max_doctors:1,  has_voice:false, has_reports:false, label:'Demo'    },
+  silver:   { voice_min:0,   duration_days:0,  max_doctors:2,  has_voice:false, has_reports:true,  label:'Silver'  },
+  gold:     { voice_min:50,  duration_days:0,  max_doctors:5,  has_voice:true,  has_reports:true,  label:'Gold'    },
+  platinum: { voice_min:200, duration_days:0,  max_doctors:99, has_voice:true,  has_reports:true,  label:'Platinum'},
+};
+
+const DEMO_MODE = SB_URL.includes('PROJE_REF');
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+let _sb          = null;
+let currentUser  = null;
+let currentProfile = null;  // { role, full_name, clinic_id }
+let currentClinic  = null;  // { id, name, package, demo_expires_at, voice_minutes_used }
+let isSuperAdmin   = false;
+let calDate        = new Date();
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+if (!DEMO_MODE) _sb = window.supabase.createClient(SB_URL, SB_ANON);
+
+const splash   = document.getElementById('splash');
+const loginPg  = document.getElementById('login-page');
+const dashPg   = document.getElementById('dash-page');
+const emEl     = document.getElementById('em');
+const pwEl     = document.getElementById('pw');
+const lBtn     = document.getElementById('lbtn');
+const lErr     = document.getElementById('lerr');
+const lErrTxt  = document.getElementById('lerrtxt');
+const toast    = document.getElementById('toast');
+
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('tr-TR',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+
+async function init() {
+  if (DEMO_MODE) {
+    setTimeout(() => { splash.classList.add('hidden'); loginPg.classList.add('active'); }, 1000);
+    return;
+  }
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      await loadProfile();
+      splash.classList.add('hidden');
+      showDashboard();
+    } else {
+      splash.classList.add('hidden');
+      loginPg.classList.add('active');
+    }
+  } catch { splash.classList.add('hidden'); loginPg.classList.add('active'); }
+}
+init();
+
+// ════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════
+document.getElementById('pwt').addEventListener('click', () => {
+  const s = pwEl.type === 'password';
+  pwEl.type = s ? 'text' : 'password';
+  document.getElementById('pwt').textContent = s ? 'gizle' : 'gör';
+});
+
+lBtn.addEventListener('click', async () => {
+  const email = emEl.value.trim(), pw = pwEl.value;
+  lErr.classList.remove('on');
+  if (!email || !pw) { lErrTxt.textContent = 'Tüm alanları doldurun.'; lErr.classList.add('on'); return; }
+  lBtn.classList.add('loading'); lBtn.disabled = true;
+
+  if (DEMO_MODE) {
+    await new Promise(r => setTimeout(r,800));
+    lBtn.classList.remove('loading'); lBtn.disabled = false;
+    lErrTxt.textContent = 'Demo mod: Supabase bağlantısı kurulmadı.'; lErr.classList.add('on');
+    return;
+  }
+
+  const { data, error } = await _sb.auth.signInWithPassword({ email, password: pw });
+  lBtn.classList.remove('loading'); lBtn.disabled = false;
+  if (error) {
+    lErrTxt.textContent = 'Hatalı e-posta veya şifre.'; lErr.classList.add('on'); pwEl.value = '';
+  } else {
+    currentUser = data.user;
+    await loadProfile();
+    showDashboard();
+  }
+});
+[emEl, pwEl].forEach(el => el.addEventListener('keydown', e => { if (e.key==='Enter') lBtn.click(); }));
+
+// ════════════════════════════════════════════════════
+// LOAD PROFILE + CLINIC
+// ════════════════════════════════════════════════════
+async function loadProfile() {
+  if (!_sb || !currentUser) return;
+  // Email fallback — profile tablosundan önce
+  const _email = currentUser?.email || '';
+  if (_email === 'admin@ottostrategic.com') {
+    isSuperAdmin = true;
+    currentProfile = { role: 'super_admin', full_name: 'Admin — Otto Strategic', clinic_id: null };
+    return;
+  }
+  try {
+    const { data, error } = await _sb.from('profiles')
+      .select('role, full_name, clinic_id')
+      .eq('id', currentUser.id)
+      .maybeSingle();
+
+    if (error) { console.warn('profiles error:', error.message); }
+
+    if (data) {
+      currentProfile = data;
+      isSuperAdmin = (data.role === 'super_admin');
+    } else {
+      // RLS sorunu — email ile kontrol et
+      const email = currentUser.email || '';
+      if (email === 'admin@ottostrategic.com' || email.includes('admin@otto')) {
+        isSuperAdmin = true;
+        currentProfile = { role: 'super_admin', full_name: 'Admin — Otto Strategic', clinic_id: null };
+      }
+    }
+
+    if (currentProfile?.clinic_id) {
+      const { data: cl } = await _sb.from('clinics')
+        .select('*')
+        .eq('id', currentProfile.clinic_id)
+        .maybeSingle();
+      if (cl) currentClinic = cl;
+    }
+  } catch(e) {
+    console.warn('loadProfile error:', e);
+    // Fallback: email'e göre rol ata
+    const email = currentUser?.email || '';
+    if (email === 'admin@ottostrategic.com') {
+      isSuperAdmin = true;
+      currentProfile = { role: 'super_admin', full_name: 'Admin — Otto Strategic', clinic_id: null };
+    }
+  }
+}
+
+async function loadOverview() {
+  if (!_sb) { renderDemoData(); return; }
+  try {
+    const [aptRes, reqRes, weekRes] = await Promise.all([
+      _sb.from('today_appointments').select('*'),
+      _sb.from('contact_requests').select('id', {count:'exact'}).eq('status','new'),
+      (async() => {
+        const now = new Date(), ws = new Date(now); ws.setDate(now.getDate()-now.getDay()+1);
+        const we = new Date(ws); we.setDate(ws.getDate()+6);
+        return _sb.from('appointments').select('id',{count:'exact'}).gte('start_at',ws.toISOString()).lte('start_at',we.toISOString()).not('status','in','(cancelled,no_show)');
+      })()
+    ]);
+
+    const apts = aptRes.data || [];
+    const reqCount  = reqRes.count  || 0;
+    const weekCount = weekRes.count || 0;
+
+    document.getElementById('k1').textContent  = apts.length;
+    document.getElementById('k1s').textContent = 'aktif randevu';
+    document.getElementById('k3').textContent  = reqCount;
+    document.getElementById('k3s').textContent = 'yanıt bekliyor';
+    document.getElementById('k4').textContent  = weekCount;
+    document.getElementById('k4s').textContent = 'bu hafta toplam';
+    document.getElementById('aptMeta').textContent = apts.length + ' randevu';
+
+    // Doluluk (basit)
+    const confirmed = apts.filter(a => !['cancelled','no_show'].includes(a.status)).length;
+    const occ = apts.length > 0 ? Math.round((confirmed/Math.max(apts.length,1))*100) : 0;
+    document.getElementById('k2').innerHTML = occ + '<span class="kpi-unit">%</span>';
+    document.getElementById('k2s').textContent = 'onaylı/toplam';
+
+    renderAptTable('aptWrap', apts);
+
+    // Badge
+    if (reqCount > 0) {
+      const nb = document.getElementById('nb-messages');
+      if (nb) { nb.textContent = reqCount; nb.classList.remove('hide'); }
+    }
+
+    // Activity
+    const { data: acts } = await _sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(8);
+    renderActivity(acts || []);
+
+  } catch(e) { console.warn('loadOverview:', e); renderDemoData(); }
+}
+
+// ════════════════════════════════════════════════════
+// LOAD SECTION
+// ════════════════════════════════════════════════════
+async function loadSection(sec) {
+  if (sec === 'admin')    { loadAdminSection(); return; }
+  if (sec === 'reports')  { renderReports(); return; }
+  if (sec === 'voice')    { renderVoice(); return; }
+  if (sec === 'settings') { renderSettings(); return; }
+  if (!_sb) return;
+
+  if (sec === 'appointments') {
+    const { data } = await _sb.from('appointments')
+      .select('*, patients(full_name,phone), doctors(full_name), services(name)')
+      .order('start_at',{ascending:false}).limit(100);
+    const mapped = (data||[]).map(a => ({...a, patient_name:a.patients?.full_name, doctor_name:a.doctors?.full_name, service_name:a.services?.name}));
+    renderAptTable('allAptWrap', mapped);
+    document.getElementById('allAptMeta').textContent = mapped.length + ' kayıt';
+  }
+  if (sec === 'patients') {
+    const { data } = await _sb.from('patients').select('*').order('created_at',{ascending:false}).limit(100);
+    renderPatients(data||[]);
+    document.getElementById('patMeta').textContent = (data||[]).length + ' hasta';
+  }
+  if (sec === 'messages') {
+    const { data } = await _sb.from('contact_requests').select('*').order('created_at',{ascending:false}).limit(50);
+    renderMessages(data||[]);
+    document.getElementById('msgMeta').textContent = (data||[]).length + ' talep';
+  }
+  if (sec === 'doctors') {
+    const { data } = await _sb.from('doctors').select('*').order('full_name');
+    renderDoctors(data||[]);
+  }
+}
+
+// ════════════════════════════════════════════════════
+// ADMIN SECTION
+// ════════════════════════════════════════════════════
+async function loadAdminSection() {
+  if (!_sb) { showToast('Supabase bağlantısı yok','err'); return; }
+  try {
+    const { data: clinics } = await _sb.from('clinics').select('*').order('created_at',{ascending:false});
+    const all  = clinics || [];
+    const demo = all.filter(c=>c.package==='demo').length;
+    const sv   = all.filter(c=>c.package==='silver').length;
+    const gd   = all.filter(c=>c.package==='gold').length;
+    const pl   = all.filter(c=>c.package==='platinum').length;
+
+    document.getElementById('adK1').textContent  = all.filter(c=>c.is_active).length;
+    document.getElementById('adK1s').textContent = 'aktif / ' + all.length + ' toplam';
+    document.getElementById('adK2').textContent  = demo;
+    document.getElementById('adK3').textContent  = sv + ' / ' + gd;
+    document.getElementById('adK3s').textContent = 'silver / gold';
+    document.getElementById('adK4').textContent  = pl;
+
+    document.getElementById('cliMeta').textContent = all.length + ' klinik';
+    renderClientList(all);
+
+    // System health
+    const { data: sys } = await _sb.from('system_overview').select('*').single();
+    if (sys) renderSysHealth(sys);
+
+  } catch(e) { showToast('Admin yükleme hatası: '+e.message,'err'); }
+  document.getElementById('sysTime').textContent = new Date().toLocaleTimeString('tr-TR');
+}
+
+function renderClientList(clients) {
+  const wrap = document.getElementById('cliList');
+  if (!clients.length) { wrap.innerHTML = `<div class="empty"><div class="empty-i">⊕</div><div class="empty-t">Henüz müşteri yok.</div></div>`; return; }
+  const pkgC = {demo:'color:var(--text-dim)',silver:'color:var(--text-mid)',gold:'color:var(--gold)',platinum:'color:var(--gold-light)'};
+  const pkgL = {demo:'Demo',silver:'Silver',gold:'Gold',platinum:'Platinum'};
+  wrap.innerHTML = `<table class="tbl">
+    <thead><tr><th>Klinik</th><th>Paket</th><th>Ses Dk</th><th>Demo Bitiş</th><th>Durum</th><th>İşlem</th></tr></thead>
+    <tbody>${clients.map(c=>`<tr>
+      <td class="t-main">${c.name||'—'}</td>
+      <td style="font-size:11px;${pkgC[c.package]||''}">${pkgL[c.package]||c.package}</td>
+      <td class="t-sec">${c.voice_minutes_used||0}/${PKG_LIMITS[c.package]?.voice_min||0} dk</td>
+      <td class="t-sec">${c.demo_expires_at?new Date(c.demo_expires_at).toLocaleDateString('tr-TR'):'—'}</td>
+      <td style="font-size:11px;color:${c.is_active?'var(--green)':'var(--red)'}">${c.is_active?'Aktif':'Pasif'}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn-ghost-s" onclick="changePackage('${c.id}','${c.package}')">Paket</button>
+        <button class="btn-ghost-s" onclick="toggleActive('${c.id}',${c.is_active})">${c.is_active?'Durdur':'Aktif'}</button>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderSysHealth(sys) {
+  document.getElementById('sysHealth').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)">
+      ${[
+        ['Aktif Klinik', sys.total_active_clinics],
+        ['Bugün Randevu', sys.today_appointments],
+        ['Bekleyen Talep', sys.pending_contacts],
+        ['Toplam Hasta', sys.total_patients],
+      ].map(([l,v])=>`<div style="background:var(--surface);padding:20px">
+        <div class="kpi-lbl">${l}</div>
+        <div class="kpi-val" style="font-size:28px">${v||0}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+async function createClient() {
+  const name  = document.getElementById('nName').value.trim();
+  const email = document.getElementById('nEmail').value.trim();
+  const phone = document.getElementById('nPhone').value.trim();
+  const pkg   = document.getElementById('nPkg').value;
+  const pass  = document.getElementById('nPass').value;
+  const note  = document.getElementById('nNote').value.trim();
+  const noteEl= document.getElementById('nNote2');
+
+  if (!name||!email||!pass) { noteEl.textContent='⚠ Klinik adı, e-posta ve şifre zorunlu.'; noteEl.style.color='var(--red)'; return; }
+  if (pass.length<8) { noteEl.textContent='⚠ Şifre en az 8 karakter.'; noteEl.style.color='var(--red)'; return; }
+  if (!_sb) { noteEl.textContent='⚠ Supabase bağlantısı yok.'; noteEl.style.color='var(--amber)'; return; }
+
+  noteEl.textContent='Oluşturuluyor...'; noteEl.style.color='var(--text-dim)';
+
+  try {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-') + '-' + Date.now();
+    const demoExp = pkg==='demo' ? new Date(Date.now()+7*86400000).toISOString() : null;
+
+    const { data: cl, error: cErr } = await _sb.from('clinics')
+      .insert({ name, slug, phone:phone||null, email, package:pkg, is_active:true, demo_expires_at:demoExp, notes:note||null, voice_minutes_used:0 })
+      .select().single();
+    if (cErr) throw cErr;
+
+    noteEl.style.color='var(--green)';
+    noteEl.textContent=`✓ "${name}" oluşturuldu (${PKG_LIMITS[pkg]?.label}). Supabase Auth'tan kullanıcı ekle: ${email} / ${pass}`;
+
+    ['nName','nEmail','nPhone','nPass','nNote'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    showToast(`${name} başarıyla oluşturuldu`, 'ok');
+    setTimeout(loadAdminSection, 600);
+
+  } catch(e) { noteEl.textContent='⚠ '+e.message; noteEl.style.color='var(--red)'; }
+}
+
+async function changePackage(clinicId, current) {
+  const opts = ['demo','silver','gold','platinum'];
+  const labels = ['Demo (3dk/7gün)','Silver','Gold (60dk)','Platinum (200dk)'];
+  const cur = opts.indexOf(current);
+  const choice = prompt(`Mevcut: ${labels[cur]||current}\n\nYeni paket seçin:\n${opts.map((o,i)=>`${i+1}. ${labels[i]}`).join('\n')}\n\n(1-4 girin):`);
+  if (!choice) return;
+  const idx = parseInt(choice)-1;
+  if (idx<0||idx>3) { showToast('Geçersiz seçim','err'); return; }
+  const newPkg = opts[idx];
+  const { error } = await _sb.from('clinics').update({package:newPkg}).eq('id',clinicId);
+  if (!error) { showToast(`Paket → ${labels[idx]} güncellendi`,'ok'); loadAdminSection(); }
+  else showToast('Hata: '+error.message,'err');
+}
+
+async function toggleActive(clinicId, isActive) {
+  const { error } = await _sb.from('clinics').update({is_active:!isActive}).eq('id',clinicId);
+  if (!error) { showToast(isActive?'Klinik durduruldu':'Klinik aktifleştirildi', isActive?'warn':'ok'); loadAdminSection(); }
+  else showToast('Hata: '+error.message,'err');
+}
+
+// ════════════════════════════════════════════════════
+// RAPORLAR (Silver+)
+// ════════════════════════════════════════════════════
+function renderReports() {
+  const pkg = currentClinic?.package || 'demo';
+  if (isSuperAdmin || PKG_LIMITS[pkg]?.has_reports) {
+    document.getElementById('reportsContent').innerHTML = `
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Haftalık Rapor</span></div>
+        <div class="empty"><div class="empty-i">≡</div><div class="empty-t">Raporlar modülü Make.com entegrasyonu tamamlandığında otomatik dolacak.</div></div>
+      </div>`;
+  } else {
+    document.getElementById('reportsContent').innerHTML = lockedHTML('Silver', 'Raporlar Silver ve üzeri paketlerde kullanılabilir.');
+  }
+}
+
+// ════════════════════════════════════════════════════
+// SESLİ ASISTAN (Gold+)
+// ════════════════════════════════════════════════════
+function renderVoice() {
+  const pkg    = currentClinic?.package || 'demo';
+  const limits = PKG_LIMITS[pkg] || PKG_LIMITS.demo;
+  if (!isSuperAdmin && !limits.has_voice) {
+    document.getElementById('voiceContent').innerHTML = lockedHTML('Gold', 'Sesli Asistan Gold (60 dk) ve Platinum (200 dk) paketlerde aktiftir.');
+    return;
+  }
+  const used  = currentClinic?.voice_minutes_used || 0;
+  const total = isSuperAdmin ? '—' : limits.voice_min;
+  const rem   = isSuperAdmin ? '—' : Math.max(0, limits.voice_min - used);
+  const pct   = (typeof total === 'number' && total > 0) ? Math.min(100,Math.round((used/total)*100)) : 0;
+  document.getElementById('voiceContent').innerHTML = `
+    <div class="kpi-grid" style="margin-bottom:16px">
+      <div class="kpi-card"><div class="kpi-lbl">Kullanılan</div><div class="kpi-val">${used}<span class="kpi-unit">dk</span></div><div class="kpi-sub">Toplam kullanım</div></div>
+      <div class="kpi-card"><div class="kpi-lbl">Kalan Kota</div><div class="kpi-val">${rem}<span class="kpi-unit">dk</span></div><div class="kpi-sub">${isSuperAdmin?'Sınırsız':'/ '+total+' dk limit'}</div></div>
+      <div class="kpi-card"><div class="kpi-lbl">Kullanım Oranı</div><div class="kpi-val">${isSuperAdmin?'—':pct}<span class="kpi-unit">${isSuperAdmin?'':' %'}</span></div><div class="kpi-sub" style="color:${pct>80?'var(--red)':pct>60?'var(--amber)':'var(--green)'}">
+        ${pct>80?'⚠ Kota dolmak üzere':pct>60?'Orta kullanım':'Normal'}</div></div>
+      <div class="kpi-card"><div class="kpi-lbl">Paket Limiti</div><div class="kpi-val">${isSuperAdmin?'—':total}<span class="kpi-unit">${isSuperAdmin?'':' dk'}</span></div><div class="kpi-sub">${isSuperAdmin?'Super Admin':'Aylık kota'}</div></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="ph-title">Sesli Asistan Durumu</span></div>
+      <div class="empty"><div class="empty-i">⬡</div><div class="empty-t">Vapi entegrasyonu Faz 3'te devreye girecek. Telefon numarası bağlandıktan sonra aramalar burada görünecek.</div></div>
+    </div>`;
+}
+
+function lockedHTML(reqPkg, desc) {
+  return `<div class="panel"><div class="locked-overlay">
+    <div class="locked-icon">🔒</div>
+    <div class="locked-title">Bu Özellik Kilitli</div>
+    <div class="locked-sub">${desc}</div>
+    <span class="locked-pkg">${reqPkg} Pakete Geçiş için İletişim</span>
+  </div></div>`;
+}
+
+// ════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════
+function renderSettings() {
+  const cl = currentClinic;
+  const w = document.getElementById('settingsWrap') || document.getElementById('settW');
+  if (!w) { console.warn('settings wrap not found'); return; }
+
+  if (isSuperAdmin) {
+    w.innerHTML = `<div style="padding:28px;display:flex;flex-direction:column;gap:16px;max-width:540px">
+      <div style="padding:16px 20px;border:1px solid rgba(167,139,250,0.35);background:rgba(167,139,250,0.07);display:flex;align-items:center;gap:14px">
+        <div style="width:42px;height:42px;border:1px solid rgba(167,139,250,0.4);display:grid;place-items:center;font-size:18px;color:#A78BFA">★</div>
+        <div><div style="font-size:14px;color:#A78BFA;font-family:'Cormorant Garamond',serif;font-weight:300">God Mode Aktif</div><div style="font-size:11px;color:var(--td);margin-top:2px">Tüm sistem bu hesaptan yönetiliyor</div></div>
+      </div>
+      <div><div class="kpi-lbl" style="margin-bottom:6px">Hesap</div><div style="padding:12px 16px;border:1px solid var(--border);color:var(--text-mid)">${user?.email||'admin@ottostrategic.com'}</div></div>
+      <div><div class="kpi-lbl" style="margin-bottom:6px">Rol</div><div style="padding:12px 16px;border:1px solid var(--border);color:#A78BFA">Super Admin — God Mode</div></div>
+      <div><div class="kpi-lbl" style="margin-bottom:6px">Platform Erişimi</div><div style="padding:12px 16px;border:1px solid var(--border);color:#4EE080">Tüm klinikler · Tüm sektörler · Sınırsız</div></div>
+      <div style="margin-top:8px"><div class="kpi-lbl" style="margin-bottom:10px">Hızlı Erişim</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+        <div onclick="switchSection('god-clinics')" style="padding:16px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#A78BFA'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:22px;margin-bottom:6px">🏛</div><div style="font-size:11px;color:var(--text)">Klinik Yönetimi</div>
+        </div>
+        <div onclick="switchSection('god-services')" style="padding:16px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#A78BFA'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:22px;margin-bottom:6px">⚙</div><div style="font-size:11px;color:var(--text)">Hizmet Yönetimi</div>
+        </div>
+        <div onclick="switchSection('god-coo')" style="padding:16px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#A78BFA'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:22px;margin-bottom:6px">🧠</div><div style="font-size:11px;color:var(--text)">COO Orchestration</div>
+        </div>
+        <div onclick="switchSection('god-analytics')" style="padding:16px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='#A78BFA'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:22px;margin-bottom:6px">📊</div><div style="font-size:11px;color:var(--text)">Platform Analytics</div>
+        </div>
+      </div></div>
+    </div>`;
+    return;
+  }
+
+  w.innerHTML = cl ? `<div style="padding:24px;display:flex;flex-direction:column;gap:16px;max-width:480px">
+    <div><div class="kpi-lbl" style="margin-bottom:6px">Klinik Adı</div><div style="padding:12px 16px;border:1px solid var(--border);color:var(--text-mid)">${cl.name}</div></div>
+    <div><div class="kpi-lbl" style="margin-bottom:6px">Sektör</div><div style="padding:12px 16px;border:1px solid var(--border);color:var(--text-mid)">${cl.sector_type==='hair'?'Saç Ekim Merkezi':cl.sector_type==='logistics'?'Lojistik & Depo':'Klinik & Sağlık'}</div></div>
+    <div><div class="kpi-lbl" style="margin-bottom:6px">E-posta</div><div style="padding:12px 16px;border:1px solid var(--border);color:var(--text-mid)">${cl.email||'—'}</div></div>
+    <div><div class="kpi-lbl" style="margin-bottom:6px">Paket</div><div style="padding:12px 16px;border:1px solid var(--border);color:var(--gold)">${PKG_LIMITS[cl.package]?.label||cl.package}</div></div>
+    ${cl.demo_expires_at?`<div><div class="kpi-lbl" style="margin-bottom:6px">Demo Bitiş</div><div style="padding:12px 16px;border:1px solid var(--border);color:var(--amber)">${new Date(cl.demo_expires_at).toLocaleDateString('tr-TR')}</div></div>`:''}
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.7">Paket yükseltme için:<br><a href="mailto:iletisim@ottostrategic.com" style="color:var(--gold)">iletisim@ottostrategic.com</a></div>
+  </div>` : '<div style="padding:40px;text-align:center;color:var(--text-dim)">Klinik bilgisi bulunamadı.</div>';
+}
+function renderAptTable(id, apts) {
+  const wrap = document.getElementById(id);
+  if (!apts||!apts.length) { wrap.innerHTML=`<div class="empty"><div class="empty-i">◎</div><div class="empty-t">Randevu bulunamadı.</div></div>`; return; }
+  const rows = apts.map(a=>`<tr>
+    <td class="t-time">${fmtTime(a.start_at)}</td>
+    <td class="t-main">${a.patient_name||'—'}</td>
+    <td class="t-sec">${a.doctor_name||'—'}</td>
+    <td class="t-sec">${a.service_name||'—'}</td>
+    <td><span class="ch-tag ch-${a.channel||'manual'}">${a.channel||'manuel'}</span></td>
+    <td><span class="st-pill s-${a.status}"><span class="st-dot"></span>${stLbl[a.status]||a.status}</span></td>
+  </tr>`).join('');
+  wrap.innerHTML=`<table class="tbl"><thead><tr><th>Saat</th><th>Hasta</th><th>Doktor</th><th>İşlem</th><th>Kanal</th><th>Durum</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderActivity(items) {
+  const icons={appointment_created:'◎',appointment_status_changed:'◈',patient_new:'⊕',message_received:'◻',reminder_sent:'⬡'};
+  const lbls={appointment_created:'Yeni randevu oluşturuldu',appointment_status_changed:'Randevu durumu değişti',patient_new:'Yeni hasta kaydı',message_received:'Yeni mesaj alındı',reminder_sent:'Hatırlatma gönderildi'};
+  if (!items.length) { document.getElementById('actWrap').innerHTML=`<div class="empty"><div class="empty-t">Henüz aktivite yok.</div></div>`; return; }
+  document.getElementById('actWrap').innerHTML=items.map(i=>`<div class="act-item">
+    <div class="act-icon">${icons[i.type]||'—'}</div>
+    <div class="act-body">
+      <div class="act-text"><strong>${lbls[i.type]||i.type}</strong></div>
+      <div class="act-time">${timeAgo(i.created_at)}</div>
+    </div>
+  </div>`).join('');
+}
+
+function renderPatients(pts) {
+  const wrap=document.getElementById('patWrap');
+  if (!pts.length){wrap.innerHTML=`<div class="empty"><div class="empty-i">⊕</div><div class="empty-t">Hasta kaydı yok.</div></div>`;return;}
+  wrap.innerHTML=`<table class="tbl"><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>E-posta</th><th>Kaynak</th><th>Kayıt</th></tr></thead><tbody>${pts.map(p=>`<tr><td class="t-main">${p.full_name}</td><td class="t-sec">${p.phone}</td><td class="t-sec">${p.email||'—'}</td><td><span class="ch-tag ch-${p.source}">${p.source}</span></td><td class="t-sec">${new Date(p.created_at).toLocaleDateString('tr-TR')}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function renderMessages(msgs) {
+  const wrap=document.getElementById('msgWrap');
+  if (!msgs.length){wrap.innerHTML=`<div class="empty"><div class="empty-i">◻</div><div class="empty-t">Bekleyen mesaj yok.</div></div>`;return;}
+  const sc={new:'color:var(--amber)',in_progress:'color:var(--gold)',converted:'color:var(--green)',closed:'color:var(--text-dim)'};
+  wrap.innerHTML=`<table class="tbl"><thead><tr><th>Ad</th><th>Telefon</th><th>Mesaj</th><th>Kaynak</th><th>Durum</th><th>Tarih</th></tr></thead><tbody>${msgs.map(m=>`<tr><td class="t-main">${m.full_name}</td><td class="t-sec">${m.phone||'—'}</td><td class="t-sec" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.message||'—'}</td><td><span class="ch-tag ch-${m.source}">${m.source}</span></td><td style="font-size:11px;${sc[m.status]||''}">${m.status}</td><td class="t-sec">${new Date(m.created_at).toLocaleDateString('tr-TR')}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function renderDoctors(docs) {
+  const wrap=document.getElementById('docWrap');
+  if (!docs.length){wrap.innerHTML=`<div class="empty"><div class="empty-i">⬡</div><div class="empty-t">Doktor kaydı yok.</div></div>`;return;}
+  wrap.innerHTML=`<table class="tbl"><thead><tr><th>Ad</th><th>Uzmanlık</th><th>Telefon</th><th>Durum</th></tr></thead><tbody>${docs.map(d=>`<tr><td class="t-main"><span style="display:inline-block;width:8px;height:8px;background:${d.color_hex||'#C8A97E'};margin-right:8px"></span>${d.title} ${d.full_name}</td><td class="t-sec">${d.specialty||'—'}</td><td class="t-sec">${d.phone||'—'}</td><td style="font-size:11px;color:${d.is_active?'var(--green)':'var(--red)'}">${d.is_active?'Aktif':'Pasif'}</td></tr>`).join('')}</tbody></table>`;
+}
+
+// ════════════════════════════════════════════════════
+// DEMO DATA
+// ════════════════════════════════════════════════════
+function renderDemoData() {
+  const now=new Date();
+  const demoApts=[
+    {start_at:new Date(now.setHours(9,30)).toISOString(),patient_name:'Ayşe Yılmaz',doctor_name:'Dr. Kaya',service_name:'Genel Muayene',channel:'whatsapp',status:'confirmed'},
+    {start_at:new Date(now.setHours(11,0)).toISOString(),patient_name:'Mehmet Demir',doctor_name:'Dr. Kaya',service_name:'Dolgu',channel:'web_form',status:'confirmed'},
+    {start_at:new Date(now.setHours(14,0)).toISOString(),patient_name:'Fatma Şahin',doctor_name:'Dr. Kaya',service_name:'Diş Temizliği',channel:'whatsapp',status:'pending'},
+  ];
+  document.getElementById('k1').textContent=demoApts.length;document.getElementById('k1s').textContent='aktif randevu';
+  document.getElementById('k2').innerHTML='78<span class="kpi-unit">%</span>';document.getElementById('k2s').className='kpi-sub up';document.getElementById('k2s').textContent='↑ dün\'e göre';
+  document.getElementById('k3').textContent='2';document.getElementById('k3s').textContent='yanıt bekliyor';
+  document.getElementById('k4').textContent='17';document.getElementById('k4s').textContent='bu hafta toplam';
+  document.getElementById('aptMeta').textContent=demoApts.length+' randevu';
+  renderAptTable('aptWrap',demoApts);
+  renderActivity([
+    {type:'appointment_created',created_at:new Date(Date.now()-900000).toISOString()},
+    {type:'patient_new',created_at:new Date(Date.now()-1800000).toISOString()},
+    {type:'message_received',created_at:new Date(Date.now()-3600000).toISOString()},
+  ]);
+}
+
+// ════════════════════════════════════════════════════
+// CALENDAR
+// ════════════════════════════════════════════════════
+const MONTHS=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const DAYS=['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+function buildCalendar(){
+  const g=document.getElementById('calGrid'),m=document.getElementById('calMonth');
+  if(!g||!m)return;
+  g.innerHTML='';
+  m.textContent=MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();
+  DAYS.forEach(d=>{const e=document.createElement('div');e.className='cal-dh';e.textContent=d;g.appendChild(e);});
+  const y=calDate.getFullYear(),mo=calDate.getMonth();
+  const first=(new Date(y,mo,1).getDay()+6)%7;
+  const dim=new Date(y,mo+1,0).getDate();
+  const prev=new Date(y,mo,0).getDate();
+  const today=new Date();
+  for(let i=first-1;i>=0;i--){const e=document.createElement('div');e.className='cal-d other';e.textContent=prev-i;g.appendChild(e);}
+  for(let d=1;d<=dim;d++){const e=document.createElement('div');e.className='cal-d';if(d===today.getDate()&&mo===today.getMonth()&&y===today.getFullYear())e.classList.add('today');if([3,7,10,14,17,21,24,28].includes(d))e.classList.add('has-apt');e.textContent=d;g.appendChild(e);}
+  const rem=42-(first+dim);for(let d=1;d<=rem;d++){const e=document.createElement('div');e.className='cal-d other';e.textContent=d;g.appendChild(e);}
+}
+document.getElementById('calPrev').addEventListener('click',()=>{calDate=new Date(calDate.getFullYear(),calDate.getMonth()-1,1);buildCalendar();});
+document.getElementById('calNext').addEventListener('click',()=>{calDate=new Date(calDate.getFullYear(),calDate.getMonth()+1,1);buildCalendar();});
+
+// ════════════════════════════════════════════════════
+// LOGOUT
+// ════════════════════════════════════════════════════
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
+  if(_sb)await _sb.auth.signOut();
+  currentUser=null;currentProfile=null;currentClinic=null;isSuperAdmin=false;
+  dashPg.classList.remove('active');loginPg.classList.add('active');
+  lBtn.classList.remove('loading');lBtn.disabled=false;emEl.value='';pwEl.value='';
+});
+
+// ════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════
+function fmtTime(ts){return new Date(ts).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});}
+function timeAgo(ts){const m=Math.floor((Date.now()-new Date(ts))/60000);if(m<1)return'Az önce';if(m<60)return m+' dk önce';const h=Math.floor(m/60);if(h<24)return h+' sa önce';return Math.floor(h/24)+' gün önce';}
+
+// ════════ MULTI-SEKTÖR SİSTEMİ ════════
+const SECTOR_TERMS = {
+  clinic: {
+    client: 'Hasta', clients: 'Hastalar',
+    appointment: 'Randevu', appointments: 'Randevular',
+    staff: 'Doktor', staffs: 'Doktorlar',
+    service: 'Tedavi', services: 'Hizmetler',
+    session: 'Randevu', icon: '🦷',
+    name: 'Klinik & Sağlık'
+  },
+  hair: {
+    client: 'Danışan', clients: 'Danışanlar',
+    appointment: 'Seans', appointments: 'Seanslar',
+    staff: 'Uzman', staffs: 'Uzmanlar',
+    service: 'Prosedür', services: 'Prosedürler',
+    session: 'Seans', icon: '💆',
+    name: 'Saç Ekim Merkezi'
+  },
+  logistics: {
+    client: 'Müşteri', clients: 'Müşteriler',
+    appointment: 'Teslimat', appointments: 'Teslimatlar',
+    staff: 'Sürücü', staffs: 'Sürücüler',
+    service: 'Rota', services: 'Rotalar',
+    session: 'Teslimat', icon: '🚛',
+    name: 'Lojistik & Depo'
+  }
+};
+
+let selectedSector = localStorage.getItem('otto_sector') || null;
+
+function selectSector(sec) {
+  selectedSector = sec;
+  localStorage.setItem('otto_sector', sec);
+  document.querySelectorAll('.sec-card').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector(`[data-sector="${sec}"]`);
+  if (card) card.classList.add('selected');
+  // Kısa gecikmeden sonra login'e geç
+  setTimeout(() => {
+    document.getElementById('sp').style.display = 'none';
+    document.getElementById('lp').classList.add('on');
+    // Login alt yazısını güncelle
+    const terms = SECTOR_TERMS[sec] || SECTOR_TERMS.clinic;
+    const subEl = document.querySelector('.lf-sub');
+    if (subEl) subEl.textContent = terms.icon + ' ' + terms.name + ' — Otto Strategic paneline hoş geldiniz.';
+  }, 200);
+}
+
+function showSectorPicker() {
+  const picker = document.getElementById('sp');
+  if (picker) {
+    picker.style.display = 'flex';
+    // Kayıtlı sektörü highlight et
+    if (selectedSector) {
+      const card = document.querySelector(`[data-sector="${selectedSector}"]`);
+      if (card) card.classList.add('selected');
+    }
+  }
+}
+
+function getSectorTerms() {
+  const sec = selectedSector || clinic?.sector_type || 'clinic';
+  return SECTOR_TERMS[sec] || SECTOR_TERMS.clinic;
+}
+
+
+// ════════ ADDON / KOTA SİSTEMİ ════════
+let selectedAddonType = null;
+
+function checkKotaWarnings() {
+  if (isSuperAdmin || !clinic) return;
+  const pkg = clinic.package || 'demo';
+  const lim = PKG_LIMITS[pkg] || PKG_LIMITS.demo;
+  const banner = document.getElementById('kotaBanner');
+  const msg = document.getElementById('kotaBannerMsg');
+  const sub = document.getElementById('kotaBannerSub');
+  if (!banner || !msg) return;
+
+  // Sesli kota kontrolü
+  if (lim.has_voice && lim.voice_min > 0) {
+    const used = clinic.voice_minutes_used || 0;
+    const pct = Math.round((used / lim.voice_min) * 100);
+    if (pct >= 100) {
+      banner.style.display = 'flex';
+      banner.style.borderColor = 'var(--rd)';
+      banner.style.background = 'rgba(224,90,78,0.05)';
+      msg.style.color = 'var(--rd)';
+      msg.textContent = '⚠ Sesli Otto kotanız doldu (' + used + '/' + lim.voice_min + ' dk)';
+      sub.textContent = 'Ek ses paketi ekleyerek kullanmaya devam edin.';
+      return;
+    }
+    if (pct >= 90) {
+      banner.style.display = 'flex';
+      banner.style.borderColor = 'var(--am)';
+      msg.style.color = 'var(--am)';
+      msg.textContent = '⚡ Sesli Otto kotanızın %' + pct + "'i kullanıldı (" + used + '/' + lim.voice_min + ' dk)';
+      sub.textContent = 'Kota dolmadan ek paket alabilirsiniz.';
+      return;
+    }
+  }
+
+  // WhatsApp Twilio eşiği
+  const twCost = clinic.twilio_cost_usd || 0;
+  if (twCost >= 20) {
+    banner.style.display = 'flex';
+    banner.style.borderColor = 'var(--rd)';
+    banner.style.background = 'rgba(224,90,78,0.05)';
+    msg.style.color = 'var(--rd)';
+    msg.textContent = '⚠ WhatsApp kullanım eşiği aşıldı ($' + twCost.toFixed(2) + ')';
+    sub.textContent = 'Ek WhatsApp paketi gereklidir.';
+    return;
+  }
+  if (twCost >= 18) {
+    banner.style.display = 'flex';
+    banner.style.borderColor = 'var(--am)';
+    msg.style.color = 'var(--am)';
+    msg.textContent = '⚡ WhatsApp kullanımı $' + twCost.toFixed(2) + ' seviyesinde ($20 eşiğine yakın)';
+    sub.textContent = 'Ek WhatsApp paketi almanızı öneririz.';
+    return;
+  }
+
+  banner.style.display = 'none';
+}
+
+function openAddonModal() {
+  const m = document.getElementById('addonModal');
+  if (m) m.style.display = 'flex';
+}
+
+function selectAddon(type) {
+  selectedAddonType = type;
+  document.querySelectorAll('.addon-opt').forEach(el => {
+    el.style.borderColor = 'var(--bb)';
+  });
+  const idx = ['voice_10min','voice_25min','whatsapp_extra'].indexOf(type);
+  const opts = document.querySelectorAll('.addon-opt');
+  if (opts[idx]) opts[idx].style.borderColor = 'var(--gold)';
+}
+
+async function requestAddon() {
+  if (!selectedAddonType) { showToast('Bir paket seçin', 'wn'); return; }
+  if (_sb && clinic) {
+    const { error } = await _sb.from('addon_purchases').insert({
+      clinic_id: clinic.id, type: selectedAddonType, status: 'pending'
+    });
+    if (!error) {
+      showToast('Talebiniz iletildi. En kısa sürede dönülecektir.', 'ok');
+      document.getElementById('addonModal').style.display = 'none';
+    } else { showToast('Hata: ' + error.message, 'err'); }
+  } else {
+    showToast('Talebiniz iletisim@ottostrategic.com adresine iletildi.', 'ok');
+    document.getElementById('addonModal').style.display = 'none';
+  }
+  selectedAddonType = null;
+}
+
+function switchSection(s){if(typeof sw==="function")sw(s);else{document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));document.querySelectorAll(".d-section").forEach(d=>d.classList.remove("active"));const ni=document.querySelector(`[data-sec="${s}"]`);if(ni)ni.classList.add("active");const ds=document.getElementById("sec-"+s);if(ds)ds.classList.add("active");}}
+function showToast(msg,type='ok'){toast.textContent=msg;toast.className=`show ${type}`;setTimeout(()=>toast.classList.remove('show'),3500);}
+
+// ════════ GOD MODE FUNCTIONS ════════
+
+// God Mode section başlıkları — inline kullanılıyor
+
+// ── GOD: Klinik Yönetimi ──
+async function godLoadClinics() {
+  if (!_sb) { showToast('Bağlantı yok', 'err'); return; }
+  const { data: cls } = await _sb.from('clinics').select('*').order('created_at', {ascending:false});
+  const all = cls || [];
+  document.getElementById('gK1').textContent = all.filter(c=>c.is_active).length;
+  document.getElementById('gK1s').textContent = 'aktif / ' + all.length;
+  document.getElementById('gK2').textContent = all.filter(c=>c.package==='demo').length;
+  document.getElementById('gK3').textContent = all.filter(c=>c.package==='silver').length+' / '+all.filter(c=>c.package==='gold').length;
+  document.getElementById('gK4').textContent = all.filter(c=>c.package==='platinum').length;
+  document.getElementById('gCliMeta').textContent = all.length + ' klinik';
+
+  // Populate dropdowns
+  ['pmCli','svCli'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const first = sel.options[0];
+    sel.innerHTML = '';
+    sel.appendChild(first);
+    all.forEach(cl => { const o = document.createElement('option'); o.value = cl.id; o.textContent = cl.name; sel.appendChild(o); });
+  });
+
+  // Render list
+  const w = document.getElementById('gCliList');
+  if (!all.length) { w.innerHTML = '<div class="empty-state"><div class="empty-text">Henüz klinik yok.</div></div>'; return; }
+  const pc = {demo:'color:var(--text-dim)',silver:'color:var(--text-mid)',gold:'color:var(--gold)',platinum:'color:#E8C49E'};
+  const pl = {demo:'Demo',silver:'Silver',gold:'Gold',platinum:'Platinum'};
+  w.innerHTML = `<table class="apt-table"><thead><tr><th>Klinik</th><th>Paket</th><th>Ses Dk</th><th>Demo Bitiş</th><th>Durum</th><th>İşlem</th></tr></thead><tbody>${all.map(cl=>`<tr>
+    <td style="font-weight:500;color:var(--text)">${cl.name||'—'}</td>
+    <td style="font-size:11px;${pc[cl.package]||''}">${pl[cl.package]||cl.package}</td>
+    <td style="font-size:11px;color:var(--text-mid)">${cl.voice_minutes_used||0}/${PKG_LIMITS[cl.package]?.voice_min||0}dk</td>
+    <td style="font-size:11px;color:var(--text-mid)">${cl.demo_expires_at?new Date(cl.demo_expires_at).toLocaleDateString('tr-TR'):'—'}</td>
+    <td style="font-size:11px;color:${cl.is_active?'var(--green)':'var(--red)'}">${cl.is_active?'Aktif':'Askıda'}</td>
+    <td><div style="display:flex;gap:4px">
+      <button onclick="godChgPkg('${cl.id}','${cl.package}')" style="background:none;border:1px solid var(--border-bright);color:var(--text-dim);padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Paket</button>
+      <button onclick="godToggleCli('${cl.id}',${cl.is_active})" style="background:none;border:1px solid ${cl.is_active?'rgba(224,90,78,0.4)':'rgba(78,224,128,0.4)'};color:${cl.is_active?'var(--red)':'var(--green)'};padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;cursor:pointer">${cl.is_active?'Durdur':'Aktif'}</button>
+    </div></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function godCreateClinic() {
+  const nm = document.getElementById('gNm').value.trim();
+  const em = document.getElementById('gEm').value.trim();
+  const ph = document.getElementById('gPh').value.trim();
+  const pkg = document.getElementById('gPkg').value;
+  const pw = document.getElementById('gPw').value;
+  const nt = document.getElementById('gNt').value.trim();
+  const msg = document.getElementById('gMsg');
+  if (!nm||!em||!pw) { msg.textContent='⚠ Ad, e-posta ve şifre zorunlu.'; msg.style.color='var(--red)'; return; }
+  if (pw.length < 8) { msg.textContent='⚠ Şifre en az 8 karakter.'; msg.style.color='var(--red)'; return; }
+  if (!_sb) return;
+  msg.textContent = 'Oluşturuluyor...'; msg.style.color = 'var(--text-dim)';
+  try {
+    const slug = nm.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-') + '-' + Date.now();
+    const demoExp = pkg==='demo' ? new Date(Date.now()+7*86400000).toISOString() : null;
+    const { error } = await _sb.from('clinics').insert({ name:nm, slug, phone:ph||null, email:em, package:pkg, is_active:true, demo_expires_at:demoExp, notes:nt||null, voice_minutes_used:0 });
+    if (error) throw error;
+    msg.style.color = 'var(--green)';
+    msg.textContent = `✓ "${nm}" oluşturuldu (${PKG_LIMITS[pkg]?.label||pkg}). Auth'tan ekle: ${em} / ${pw}`;
+    ['gNm','gEm','gPh','gPw','gNt'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    showToast(nm+' oluşturuldu', 'success');
+    setTimeout(godLoadClinics, 600);
+  } catch(e) { msg.textContent='⚠ '+e.message; msg.style.color='var(--red)'; }
+}
+
+async function godChgPkg(id, cur) {
+  const opts = ['demo','silver','gold','platinum'];
+  const labs = ['Demo (3dk/7gün)','Silver','Gold (50dk)','Platinum (200dk)'];
+  const choice = prompt(`Mevcut: ${labs[opts.indexOf(cur)]||cur}
+
+Yeni paket:
+1. ${labs[0]}
+2. ${labs[1]}
+3. ${labs[2]}
+4. ${labs[3]}
+
+(1-4):`);
+  if (!choice) return;
+  const i = parseInt(choice)-1;
+  if (i<0||i>3) { showToast('Geçersiz seçim','err'); return; }
+  const { error } = await _sb.from('clinics').update({package:opts[i]}).eq('id',id);
+  if (!error) { showToast('Paket → '+labs[i],'ok'); godLoadClinics(); } else showToast('Hata: '+error.message,'err');
+}
+
+async function godToggleCli(id, active) {
+  const { error } = await _sb.from('clinics').update({is_active:!active}).eq('id',id);
+  if (!error) { showToast(active?'Klinik askıya alındı':'Klinik aktifleştirildi', active?'warn':'ok'); godLoadClinics(); }
+  else showToast('Hata: '+error.message,'err');
+}
+
+// ── GOD: Hizmet Yönetimi ──
+async function godLoadServices() {
+  if (!_sb) return;
+  await godLoadClinics(); // populate dropdowns
+  const { data } = await _sb.from('services').select('*,clinics(name)').order('name');
+  const all = data || [];
+  document.getElementById('gSvcMeta').textContent = all.length + ' hizmet';
+  const w = document.getElementById('gSvcList');
+  if (!all.length) { w.innerHTML='<div class="empty-state"><div class="empty-text">Hizmet yok.</div></div>'; return; }
+  w.innerHTML = `<table class="apt-table"><thead><tr><th>Hizmet</th><th>Süre</th><th>Buffer</th><th>Klinik</th><th>İşlem</th></tr></thead><tbody>${all.map(s=>`<tr>
+    <td style="font-weight:500">${s.name}</td><td style="font-size:11px;color:var(--text-mid)">${s.duration_min}dk</td><td style="font-size:11px;color:var(--text-mid)">${s.buffer_min||0}dk</td>
+    <td style="font-size:11px;color:var(--text-dim)">${s.clinics?.name||'—'}</td>
+    <td><button onclick="godDelSvc('${s.id}','${s.name}')" style="background:none;border:1px solid rgba(224,90,78,0.4);color:var(--red);padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;cursor:pointer">Kaldır</button></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function godAddService() {
+  const nm = document.getElementById('svNm').value.trim();
+  const dur = document.getElementById('svDur').value || 30;
+  const buf = document.getElementById('svBuf').value || 5;
+  const cli = document.getElementById('svCli').value;
+  const msg = document.getElementById('svMsg');
+  if (!nm) { msg.textContent='⚠ Hizmet adı zorunlu.'; msg.style.color='var(--red)'; return; }
+  if (!_sb || !cli || cli==='first') { msg.textContent='⚠ Klinik seçin.'; msg.style.color='var(--amber)'; return; }
+  const { error } = await _sb.from('services').insert({name:nm, clinic_id:cli, duration_min:parseInt(dur), buffer_min:parseInt(buf), is_active:true});
+  if (!error) { msg.textContent='✓ '+nm+' eklendi.'; msg.style.color='var(--green)'; document.getElementById('svNm').value=''; showToast(nm+' eklendi','ok'); setTimeout(godLoadServices,500); }
+  else { msg.textContent='⚠ '+error.message; msg.style.color='var(--red)'; }
+}
+
+async function godDelSvc(id, nm) {
+  if (!confirm(`"${nm}" hizmetini kaldır?`)) return;
+  const { error } = await _sb.from('services').delete().eq('id',id);
+  if (!error) { showToast(nm+' kaldırıldı','warn'); godLoadServices(); } else showToast('Hata: '+error.message,'err');
+}
+
+// ── GOD: COO Panel ──
+const FF = [
+  {k:'whatsapp_bot',n:'WhatsApp Otto',d:'Randevu botu aktif/pasif'},
+  {k:'voice_bot',n:'Sesli Otto',d:'Telefon kanalı'},
+  {k:'reminder_24h',n:'24s Hatırlatma',d:'Otomatik hatırlatıcı'},
+  {k:'reminder_2h',n:'2s Hatırlatma',d:'Son hatırlatma'},
+  {k:'no_show_recovery',n:'No-Show Recovery',d:'Gelmeyene otomatik dönüş'},
+  {k:'lead_scoring',n:'Lead Scoring',d:'Niyet puanlama'},
+  {k:'quiet_hours',n:'Sessiz Saatler',d:'Gece mesaj yasağı'},
+  {k:'anti_ban',n:'Anti-Ban Layer',d:'WhatsApp koruma'},
+];
+let ffState = {};
+FF.forEach(f => { ffState[f.k] = true; });
+
+function initCOO() {
+  renderFF();
+  godLoadClinics();
+}
+
+function renderFF() {
+  const g = document.getElementById('ffGrid');
+  if (!g) return;
+  g.innerHTML = FF.map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);background:var(--surface2);margin-bottom:6px">
+    <div><div style="font-size:12px;color:var(--text)">${f.n}</div><div style="font-size:10px;color:var(--text-dim)">${f.d}</div></div>
+    <button onclick="toggleFF('${f.k}')" style="width:40px;height:22px;border-radius:11px;border:none;cursor:pointer;position:relative;background:${ffState[f.k]?'var(--gold)':'var(--border-bright)'}">
+      <span style="position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;${ffState[f.k]?'right:3px':'left:3px'};transition:all 0.2s"></span>
+    </button>
+  </div>`).join('');
+}
+
+function toggleFF(k) { ffState[k]=!ffState[k]; renderFF(); showToast(FF.find(f=>f.k===k)?.n+' → '+(ffState[k]?'Aktif':'Pasif'),'ok'); }
+
+let activePM = 'recommended';
+function selPM(el) {
+  document.querySelectorAll('#pmGrid > div').forEach(d=>{ d.style.borderColor='var(--border-bright)'; d.style.background='transparent'; });
+  el.style.borderColor='var(--gold)'; el.style.background='rgba(200,169,126,0.06)';
+  activePM = el.dataset.mode;
+}
+function savePM() { const c = document.getElementById('pmCli')?.value; if (!c) { showToast('Klinik seçin','warn'); return; } showToast('Pricing: '+activePM+' kaydedildi','ok'); }
+
+// ── GOD: Analytics ──
+async function godLoadAnalytics() {
+  if (!_sb) return;
+  const [aR,nR,lR] = await Promise.all([
+    _sb.from('appointments').select('id,channel,status',{count:'exact'}),
+    _sb.from('appointments').select('id',{count:'exact'}).eq('status','no_show'),
+    _sb.from('contact_requests').select('id',{count:'exact'}),
+  ]);
+  const total=aR.count||0, noshow=nR.count||0, leads=lR.count||0;
+  const conv = leads>0?Math.round((total/leads)*100):0;
+  const nsRate = total>0?Math.round((noshow/total)*100):0;
+  document.getElementById('anK1').textContent = total;
+  document.getElementById('anK2').innerHTML = conv+'<span class="kpi-unit">%</span>';
+  document.getElementById('anK3').innerHTML = nsRate+'<span class="kpi-unit">%</span>';
+  document.getElementById('anK4').textContent = leads;
+
+  // Channel funnel
+  const chMap = {whatsapp:0,web_form:0,voice:0,manual:0};
+  (aR.data||[]).forEach(a=>{if(chMap[a.channel]!==undefined)chMap[a.channel]++;});
+  const chTotal = Math.max(Object.values(chMap).reduce((a,b)=>a+b,0),1);
+  const colors = {whatsapp:'var(--green)',web_form:'var(--amber)',voice:'var(--gold)',manual:'var(--border-bright)'};
+  const labels = {whatsapp:'WhatsApp',web_form:'Web Form',voice:'Sesli',manual:'Manuel'};
+  document.getElementById('chanFunnel').innerHTML = Object.entries(chMap).map(([k,v])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+    <div style="font-size:11px;color:var(--text-dim);width:80px">${labels[k]}</div>
+    <div style="flex:1;height:24px;background:var(--surface2);position:relative"><div style="height:100%;width:${Math.round((v/chTotal)*100)}%;background:${colors[k]};display:flex;align-items:center;padding-left:8px;font-size:11px;color:var(--bg);font-weight:500">${v||''}</div></div>
+    <div style="font-size:11px;color:var(--text-mid);width:30px;text-align:right">${v}</div>
+  </div>`).join('');
+
+  document.getElementById('convFunnel').innerHTML = [
+    {l:'Lead Geldi',v:leads,c:'var(--blue)'},
+    {l:'İletişim',v:Math.round(leads*0.65),c:'#A78BFA'},
+    {l:'Randevu',v:total,c:'var(--gold)'},
+    {l:'Tamamlandı',v:Math.round(total*0.8),c:'var(--green)'},
+  ].map(r=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+    <div style="font-size:11px;color:var(--text-dim);width:80px">${r.l}</div>
+    <div style="flex:1;height:24px;background:var(--surface2)"><div style="height:100%;width:${leads>0?Math.round((r.v/leads)*100):0}%;background:${r.c};display:flex;align-items:center;padding-left:8px;font-size:11px;color:var(--bg);font-weight:500">${r.v||''}</div></div>
+    <div style="font-size:11px;color:var(--text-mid);width:30px;text-align:right">${r.v}</div>
+  </div>`).join('');
+
+  const {data:cls} = await _sb.from('clinics').select('id,name,package,voice_minutes_used,is_active');
+  if(cls&&cls.length){
+    document.getElementById('cliPerf').innerHTML=`<table class="apt-table"><thead><tr><th>Klinik</th><th>Paket</th><th>Ses Dk</th><th>Durum</th></tr></thead><tbody>${cls.map(cl=>`<tr><td style="font-weight:500">${cl.name}</td><td style="font-size:11px;color:${cl.package==='gold'?'var(--gold)':cl.package==='platinum'?'#E8C49E':'var(--text-dim)'}">${PKG_LIMITS[cl.package]?.label||cl.package}</td><td style="font-size:11px;color:var(--text-mid)">${cl.voice_minutes_used||0}/${PKG_LIMITS[cl.package]?.voice_min||0}dk</td><td style="font-size:11px;color:${cl.is_active?'var(--green)':'var(--red)'}">${cl.is_active?'Aktif':'Askıda'}</td></tr>`).join('')}</tbody></table>`;
+  }
+}
+
+// ── GOD: System Settings ──
+async function godLoadSysSettings() {
+  document.getElementById('sysTime').textContent = new Date().toLocaleTimeString('tr-TR');
+  if (!_sb) { document.getElementById('sysHealthWrap').innerHTML='<div class="loading-row">Bağlantı yok</div>'; return; }
+  try {
+    const [cR,aR,pR,rR] = await Promise.all([
+      _sb.from('clinics').select('id',{count:'exact'}),
+      _sb.from('appointments').select('id',{count:'exact'}).gte('start_at',new Date(Date.now()-86400000).toISOString()),
+      _sb.from('patients').select('id',{count:'exact'}),
+      _sb.from('contact_requests').select('id',{count:'exact'}).eq('status','new'),
+    ]);
+    document.getElementById('sysHealthWrap').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)">
+      ${[['Toplam Klinik',cR.count||0],['Son 24s Randevu',aR.count||0],['Toplam Hasta',pR.count||0],['Bekleyen Lead',rR.count||0]].map(([l,v])=>`<div style="background:var(--surface);padding:20px"><div class="kpi-lbl">${l}</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300">${v}</div></div>`).join('')}
+    </div>`;
+  } catch(e) { document.getElementById('sysHealthWrap').innerHTML='<div class="loading-row">Yükleme hatası</div>'; }
+}
+
+// Extend loadSection for god sections
+// God Mode section loader — extends existing loadSection
+const _origLoadSection_god = (typeof loadSection === 'function') ? loadSection : async function(){};
+async function loadSection(sec) {
+  if (sec === 'god-clinics')   { await godLoadClinics();      return; }
+  if (sec === 'god-services')  { await godLoadServices();     return; }
+  if (sec === 'god-coo')       { initCOO();                   return; }
+  if (sec === 'god-analytics') { await godLoadAnalytics();    return; }
+  if (sec === 'god-settings')  { await godLoadSysSettings();  return; }
+  return _origLoadSection_god(sec);
+}
+
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e1597211864199e',t:'MTc3NDM1NDQxMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
