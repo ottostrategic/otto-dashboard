@@ -1702,57 +1702,23 @@ async function loadSection(sec) {
 </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e1bc583fe95a63e',t:'MTc3NDQxOTIyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 <script>
-// PATCH: Fix nav render + sidebar profile IDs
-(function() {
-  var _origShow = window.showDashboard;
-  window.showDashboard = function() {
-    _origShow && _origShow.call(this);
-    // sbName / sbAvatar / sbRole fix (showDashboard yanlış ID kullanıyor olabilir)
-    var nameEl = document.getElementById('sbName');
-    var avatarEl = document.getElementById('sbAvatar');
-    var roleEl = document.getElementById('sbRole');
-    var name = (window.currentProfile && window.currentProfile.full_name) || 
-               (window.currentUser && window.currentUser.email && window.currentUser.email.split('@')[0]) || 'Admin';
-    var role = (window.currentProfile && window.currentProfile.role === 'super_admin') ? 'Süper Admin' : 
-               (window.currentProfile && window.currentProfile.role ? window.currentProfile.role : 'Yönetici');
-    if (nameEl) nameEl.textContent = name;
-    if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
-    if (roleEl) roleEl.textContent = role;
-    // Nav render
-    var nav = document.getElementById('sbNav');
-    if (nav && nav.querySelectorAll('.nav-item').length === 0) {
-      var isAdmin = window.isSuperAdmin || (window.currentProfile && window.currentProfile.role === 'super_admin');
-      nav.innerHTML = 
-        '<div class="nav-item active" data-sec="overview" onclick="switchSection('overview')"><span class="nav-icon">◈</span><span class="nav-label">Genel Bakış</span></div>' +
-        '<div class="nav-item" data-sec="appointments" onclick="switchSection('appointments')"><span class="nav-icon">◷</span><span class="nav-label">Randevular</span></div>' +
-        '<div class="nav-item" data-sec="patients" onclick="switchSection('patients')"><span class="nav-icon">◎</span><span class="nav-label">Hastalar</span></div>' +
-        '<div class="nav-item" data-sec="messages" onclick="switchSection('messages')"><span class="nav-icon">◱</span><span class="nav-label">Mesajlar</span></div>' +
-        '<div class="nav-item" data-sec="reports" onclick="switchSection('reports')"><span class="nav-icon">◫</span><span class="nav-label">Raporlar</span></div>' +
-        '<div class="nav-item" data-sec="settings" onclick="switchSection('settings')"><span class="nav-icon">◌</span><span class="nav-label">Ayarlar</span></div>' +
-        (isAdmin ? '<div class="sb-sec-lbl" style="padding:12px 20px 4px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase">Sistem</div><div class="nav-item god-only" data-sec="admin" onclick="switchSection('admin')"><span class="nav-icon">◉</span><span class="nav-label">Admin Panel</span></div>' : '');
-    }
-  };
-})();
-</script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e1c757aebc2193b',t:'MTc3NDQyNjQzMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e1c89cbeb91d233',t:'MTc3NDQyNzI2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-<script>
 setTimeout(function() {
-  var origLBtn = document.getElementById('lbtn');
-  if (!origLBtn) return;
-  origLBtn.addEventListener('click', function() {
-    setTimeout(function updateSidebar() {
-      if (!window.currentUser) { setTimeout(updateSidebar, 200); return; }
-      var name = (window.currentProfile && window.currentProfile.full_name) || (window.currentUser.email && window.currentUser.email.split('@')[0]) || 'Admin';
+  var btn = document.getElementById('lbtn');
+  if (!btn) return;
+  btn.addEventListener('click', function() {
+    var t = setInterval(function() {
+      if (!window.currentUser) return;
+      clearInterval(t);
+      // Sidebar profil güncelle
+      var name = (window.currentProfile && window.currentProfile.full_name) || (window.currentUser.email.split('@')[0]) || 'Admin';
       var role = window.isSuperAdmin ? 'Süper Admin' : (window.currentProfile && window.currentProfile.role ? window.currentProfile.role : 'Yönetici');
-      var nameEl = document.getElementById('sbName');
-      var roleEl = document.getElementById('sbRole');
-      var avEl = document.getElementById('sbAvatar');
-      if (nameEl) nameEl.textContent = name;
-      if (roleEl) roleEl.textContent = role;
-      if (avEl) avEl.textContent = name.charAt(0).toUpperCase();
+      var nm = document.getElementById('sbName'); if (nm) nm.textContent = name;
+      var rl = document.getElementById('sbRole'); if (rl) rl.textContent = role;
+      var av = document.getElementById('sbAvatar'); if (av) av.textContent = name[0].toUpperCase();
+      // Nav render — sadece nav boşsa çalıştır
       var nav = document.getElementById('sbNav');
       if (nav && nav.querySelectorAll('.nav-item').length === 0) {
-        var isAdmin = window.isSuperAdmin || (window.currentProfile && window.currentProfile.role === 'super_admin');
+        var adm = window.isSuperAdmin || (window.currentProfile && window.currentProfile.role === 'super_admin');
         nav.innerHTML =
           '<div class="nav-item active" data-sec="overview" onclick="switchSection('overview')"><span class="nav-icon">◈</span><span class="nav-label">Genel Bakış</span></div>' +
           '<div class="nav-item" data-sec="appointments" onclick="switchSection('appointments')"><span class="nav-icon">◷</span><span class="nav-label">Randevular</span></div>' +
@@ -1760,9 +1726,9 @@ setTimeout(function() {
           '<div class="nav-item" data-sec="messages" onclick="switchSection('messages')"><span class="nav-icon">◱</span><span class="nav-label">Mesajlar</span></div>' +
           '<div class="nav-item" data-sec="reports" onclick="switchSection('reports')"><span class="nav-icon">◫</span><span class="nav-label">Raporlar</span></div>' +
           '<div class="nav-item" data-sec="settings" onclick="switchSection('settings')"><span class="nav-icon">◌</span><span class="nav-label">Ayarlar</span></div>' +
-          (isAdmin ? '<div class="sb-sec-lbl" style="padding:12px 20px 4px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase">Sistem</div><div class="nav-item god-only" data-sec="admin" onclick="switchSection('admin')"><span class="nav-icon">◉</span><span class="nav-label">Admin Panel</span></div>' : '');
+          (adm ? '<div class="sb-sec-lbl" style="padding:12px 20px 4px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase">Sistem</div><div class="nav-item" data-sec="admin" onclick="switchSection('admin')"><span class="nav-icon">◉</span><span class="nav-label">Admin Panel</span></div>' : '');
       }
-    }, 500);
+    }, 200);
   });
 }, 0);
 </script>
