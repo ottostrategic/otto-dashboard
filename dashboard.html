@@ -983,6 +983,8 @@ async function loadSection(sec) {
   if (sec === 'reports')  { renderReports(); return; }
   if (sec === 'voice')    { renderVoice(); return; }
   if (sec === 'settings') { renderSettings(); return; }
+  if(sec.startsWith('god-')){loadGodSection(sec);return;}
+  if (sec==='admin'){loadAdminSection();return;}
   if (!_sb) return;
 
   if (sec === 'appointments') {
@@ -1228,7 +1230,7 @@ function renderSettings() {
     <div style="font-size:11px;color:var(--text-dim);line-height:1.7">Paket yükseltme için:<br><a href="mailto:iletisim@ottostrategic.com" style="color:var(--gold)">iletisim@ottostrategic.com</a></div>
   </div>` : '<div style="padding:40px;text-align:center;color:var(--text-dim)">Klinik bilgisi bulunamadı.</div>';
 }
-var stLbl={confirmed:"Onaylı",pending:"Bekliyor",cancelled:"İptal",no_show:"Gelmedi",completed:"Tamamlandı"};
+var stLbl=window.stLbl={confirmed:"Onaylı",pending:"Bekliyor",cancelled:"İptal",no_show:"Gelmedi",completed:"Tamamlandı"};
 function renderAptTable(id, apts) {
   const wrap = document.getElementById(id);
   if (!apts||!apts.length) { wrap.innerHTML=`<div class="empty"><div class="empty-i">◎</div><div class="empty-t">Randevu bulunamadı.</div></div>`; return; }
@@ -1492,7 +1494,7 @@ async function requestAddon() {
   selectedAddonType = null;
 }
 
-function switchSection(s){if(typeof sw==="function")sw(s);else{document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));document.querySelectorAll(".d-section").forEach(d=>d.classList.remove("active"));const ni=document.querySelector(`[data-sec="${s}"]`);if(ni)ni.classList.add("active");const ds=document.getElementById("sec-"+s);if(ds)ds.classList.add("active");}}
+function switchSection(s){document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));document.querySelectorAll(".d-section").forEach(d=>d.classList.remove("active"));const ni=document.querySelector(`[data-sec="${s}"]`);if(ni)ni.classList.add("active");const ds=document.getElementById("sec-"+s);if(ds)ds.classList.add("active");}}
 function showToast(msg,type='ok'){toast.textContent=msg;toast.className=`show ${type}`;setTimeout(()=>toast.classList.remove('show'),3500);}
 
 // ════════ GOD MODE FUNCTIONS ════════
@@ -1729,7 +1731,7 @@ async function godLoadSysSettings() {
 // Extend loadSection for god sections
 // God Mode section loader — extends existing loadSection
 const _origLoadSection_god = (typeof loadSection === 'function') ? loadSection : async function(){};
-async function loadSection(sec) {
+async function loadGodSection(sec) {
   if (sec === 'god-clinics')   { await godLoadClinics();      return; }
   if (sec === 'god-services')  { await godLoadServices();     return; }
   if (sec === 'god-coo')       { initCOO();                   return; }
