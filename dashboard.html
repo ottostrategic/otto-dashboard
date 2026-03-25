@@ -358,7 +358,13 @@ a{text-decoration:none;color:inherit}
       </div>
 
       <nav class="sb-nav" id="sbNav">
-        <!-- Dinamik olarak doldurulacak -->
+        <button onclick="switchSection('overview')" class="nav-btn active">📊 Genel Bakış</button>
+        <button onclick="switchSection('appointments')" class="nav-btn">📅 Randevular</button>
+        <button onclick="switchSection('patients')" class="nav-btn">👤 Hastalar</button>
+        <button onclick="switchSection('messages')" class="nav-btn">💬 Mesajlar</button>
+        <button onclick="switchSection('reports')" class="nav-btn">📈 Raporlar</button>
+        <button onclick="switchSection('settings')" class="nav-btn">⚙️ Ayarlar</button>
+        <button onclick="switchSection('admin')" class="nav-btn god-only" style="margin-top:8px">🔧 Sistem</button>
       </nav>
 
       <!-- Demo countdown -->
@@ -839,7 +845,7 @@ lBtn.addEventListener('click', async () => {
 // LOAD PROFILE + CLINIC
 // ════════════════════════════════════════════════════
 async function loadProfile() {
-  if (!_sb || !currentUser) return;
+  if (!currentUser) return;
   // Email fallback — profile tablosundan önce
   const _email = currentUser?.email || '';
   if (_email === 'admin@ottostrategic.com') {
