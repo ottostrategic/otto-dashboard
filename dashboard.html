@@ -837,24 +837,7 @@ lBtn.addEventListener('click', async () => {
     currentUser = data.user;
     await loadProfile();
     showDashboard();
-    // Sidebar güncelle
-    (function updateSB(){
-      var nm=document.getElementById('sbName'),rl=document.getElementById('sbRole'),av=document.getElementById('sbAvatar');
-      var n=(currentProfile&&currentProfile.full_name)||(currentUser&&currentUser.email.split('@')[0])||'Admin';
-      var r=isSuperAdmin?'Süper Admin':(currentProfile&&currentProfile.role?currentProfile.role:'Yönetici');
-      if(nm)nm.textContent=n;if(rl)rl.textContent=r;if(av)av.textContent=n[0].toUpperCase();
-      var nav=document.getElementById('sbNav');
-      if(nav){nav.innerHTML=
-        '<div class="nav-item active" data-sec="overview" onclick="switchSection('overview')"><span class="nav-icon">◈</span><span class="nav-label">Genel Bakış</span></div>'+
-        '<div class="nav-item" data-sec="appointments" onclick="switchSection('appointments')"><span class="nav-icon">◷</span><span class="nav-label">Randevular</span></div>'+
-        '<div class="nav-item" data-sec="patients" onclick="switchSection('patients')"><span class="nav-icon">◎</span><span class="nav-label">Hastalar</span></div>'+
-        '<div class="nav-item" data-sec="messages" onclick="switchSection('messages')"><span class="nav-icon">◱</span><span class="nav-label">Mesajlar</span></div>'+
-        '<div class="nav-item" data-sec="reports" onclick="switchSection('reports')"><span class="nav-icon">◫</span><span class="nav-label">Raporlar</span></div>'+
-        '<div class="nav-item" data-sec="settings" onclick="switchSection('settings')"><span class="nav-icon">◌</span><span class="nav-label">Ayarlar</span></div>'+
-        (isSuperAdmin?'<div class="sb-sec-lbl" style="padding:12px 20px 4px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase">Sistem</div><div class="nav-item" data-sec="admin" onclick="switchSection('admin')"><span class="nav-icon">◉</span><span class="nav-label">Admin Panel</span></div>':'');
       }
-    })();
-  }
 });
 [emEl, pwEl].forEach(el => el.addEventListener('keydown', e => { if (e.key==='Enter') lBtn.click(); }));
 
