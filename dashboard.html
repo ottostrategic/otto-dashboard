@@ -1702,5 +1702,43 @@ async function loadSection(sec) {
 </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e1bc583fe95a63e',t:'MTc3NDQxOTIyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 
+<script>
+setTimeout(function(){
+  var btn=document.getElementById("lbtn");
+  if(!btn)return;
+  btn.addEventListener("click",function(){
+    var t=setInterval(function(){
+      if(!window.currentUser)return;
+      clearInterval(t);
+      var name=(window.currentProfile&&window.currentProfile.full_name)||(window.currentUser.email.split("@")[0])||"Admin";
+      var role=window.isSuperAdmin?"Süper Admin":"Yönetici";
+      var nm=document.getElementById("sbName");if(nm)nm.textContent=name;
+      var rl=document.getElementById("sbRole");if(rl)rl.textContent=role;
+      var av=document.getElementById("sbAvatar");if(av)av.textContent=name[0].toUpperCase();
+      var nav=document.getElementById("sbNav");
+      if(!nav)return;
+      var items=[
+        {s:"overview",i:"◈",l:"Genel Bakış"},
+        {s:"appointments",i:"◷",l:"Randevular"},
+        {s:"patients",i:"◎",l:"Hastalar"},
+        {s:"messages",i:"◱",l:"Mesajlar"},
+        {s:"reports",i:"◫",l:"Raporlar"},
+        {s:"settings",i:"◌",l:"Ayarlar"}
+      ];
+      if(window.isSuperAdmin)items.push({s:"admin",i:"◉",l:"Admin Panel",sys:true});
+      var html="";
+      items.forEach(function(x){
+        if(x.sys)html+='<div class="sb-sec-lbl" style="padding:12px 20px 4px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase">Sistem</div>';
+        html+='<div class="nav-item" data-sec="'+x.s+'"><span class="nav-icon">'+x.i+'</span><span class="nav-label">'+x.l+'</span></div>';
+      });
+      nav.innerHTML=html;
+      nav.querySelectorAll(".nav-item").forEach(function(el){
+        el.addEventListener("click",function(){switchSection(this.dataset.sec);});
+      });
+      var first=nav.querySelector(".nav-item");if(first)first.classList.add("active");
+    },200);
+  });
+},0);
+</script>
 </body>
 </html>
