@@ -794,6 +794,22 @@ function updateSidebar(){
   nav.innerHTML=html;
   nav.querySelectorAll('.nav-item').forEach(function(el){el.addEventListener('click',function(){switchSection(this.dataset.sec);});});
   var first=nav.querySelector('.nav-item');if(first)first.classList.add('active');
+  // Demo bar — paket demo ise gün sayacını göster
+  if(window.currentProfile&&window.currentClinic&&window.currentClinic.package==='demo'){
+    var demoBar=document.getElementById('demoBar');
+    var demoDays=document.getElementById('demoDays');
+    if(demoBar&&demoDays){
+      var created=new Date(window.currentClinic.created_at);
+      var expire=new Date(created.getTime()+7*24*3600000);
+      var remaining=Math.max(0,Math.ceil((expire-new Date())/86400000));
+      demoDays.textContent=remaining;
+      demoBar.style.display='';
+      if(remaining===0){
+        demoBar.style.borderTop='1px solid #c00';
+        demoBar.querySelector('.demo-bar-lbl').textContent='Demo Süresi Doldu';
+      }
+    }
+  }
 }
 function showDashboard() {
   document.getElementById('login-page').classList.remove('active');
