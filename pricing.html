@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fiyatlandırma — Randevu Otto</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#b8975a;--gold2:#d4af70;--bg:#0a0a0a;--card:#111;--border:#1e1e1e;--text:#e8e2d8;--dim:#7a7060}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 60px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,10,10,.95);backdrop-filter:blur(10px);z-index:99}
+.logo{font-size:13px;letter-spacing:.15em;font-weight:600;color:var(--gold)}
+.nav-links{display:flex;gap:32px;font-size:13px;color:var(--dim)}
+.nav-links a:hover{color:var(--text)}
+.btn-outline{border:1px solid var(--gold);color:var(--gold);padding:8px 20px;border-radius:4px;font-size:12px;letter-spacing:.08em;cursor:pointer;background:none;transition:.2s}
+.btn-outline:hover{background:var(--gold);color:#000}
+.btn-gold{background:var(--gold);color:#000;padding:10px 28px;border-radius:4px;font-size:13px;font-weight:600;letter-spacing:.06em;cursor:pointer;border:none;transition:.2s}
+.btn-gold:hover{background:var(--gold2)}
+header{text-align:center;padding:80px 20px 60px}
+header h1{font-size:42px;font-weight:300;letter-spacing:-.01em;margin-bottom:16px}
+header h1 span{color:var(--gold)}
+header p{color:var(--dim);font-size:16px;max-width:500px;margin:0 auto 32px}
+.toggle{display:inline-flex;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px}
+.toggle button{background:none;border:none;color:var(--dim);padding:8px 20px;border-radius:4px;cursor:pointer;font-size:13px;transition:.2s}
+.toggle button.active{background:var(--gold);color:#000;font-weight:600}
+.badge-save{background:rgba(184,151,90,.15);color:var(--gold);border:1px solid rgba(184,151,90,.3);padding:2px 8px;border-radius:10px;font-size:11px;margin-left:8px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto;padding:0 40px 80px}
+.plan{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:36px;position:relative;transition:.3s}
+.plan:hover{border-color:rgba(184,151,90,.3)}
+.plan.popular{border-color:var(--gold);box-shadow:0 0 40px rgba(184,151,90,.08)}
+.pop-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-size:11px;font-weight:700;padding:4px 14px;border-radius:10px;letter-spacing:.08em}
+.plan-name{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.plan-price{font-size:38px;font-weight:300;margin-bottom:4px}
+.plan-price span{font-size:16px;color:var(--dim);font-weight:400}
+.plan-sub{font-size:13px;color:var(--dim);margin-bottom:8px}
+.plan-limit{font-size:12px;color:var(--gold);background:rgba(184,151,90,.1);padding:4px 10px;border-radius:4px;display:inline-block;margin-bottom:28px}
+.plan hr{border:none;border-top:1px solid var(--border);margin-bottom:24px}
+.feat{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:13px}
+.feat .icon{color:var(--gold);margin-top:1px;flex-shrink:0}
+.feat .icon.no{color:var(--dim)}
+.feat-label{color:var(--text)}
+.feat-label.dim{color:var(--dim)}
+.feat-new{background:rgba(184,151,90,.12);color:var(--gold);font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:.05em}
+.plan-cta{width:100%;margin-top:28px;padding:13px;border-radius:6px;font-size:13px;letter-spacing:.06em;cursor:pointer;transition:.2s}
+.plan-cta.outline{background:none;border:1px solid var(--border);color:var(--text)}
+.plan-cta.outline:hover{border-color:var(--gold);color:var(--gold)}
+.plan-cta.gold{background:var(--gold);border:none;color:#000;font-weight:600}
+.plan-cta.gold:hover{background:var(--gold2)}
+.plan-cta.dark{background:#1a1a1a;border:1px solid var(--border);color:var(--text)}
+.plan-cta.dark:hover{border-color:var(--gold);color:var(--gold)}
+.compare{max-width:1100px;margin:0 auto 80px;padding:0 40px}
+.compare h2{text-align:center;font-size:28px;font-weight:300;margin-bottom:40px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:14px 20px;background:var(--card);color:var(--dim);font-weight:400;letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+td{padding:14px 20px;border-bottom:1px solid var(--border)}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:var(--dim)}
+.check{color:var(--gold)}
+.x{color:#333}
+.new{color:var(--gold);font-size:11px;background:rgba(184,151,90,.1);padding:1px 6px;border-radius:3px}
+.faq{max-width:700px;margin:0 auto 80px;padding:0 40px}
+.faq h2{text-align:center;font-size:28px;font-weight:300;margin-bottom:40px}
+.faq-item{border-bottom:1px solid var(--border);padding:20px 0}
+.faq-q{font-size:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.faq-q:hover{color:var(--gold)}
+.faq-a{font-size:14px;color:var(--dim);padding-top:12px;line-height:1.7;display:none}
+.faq-a.open{display:block}
+.cta-bottom{text-align:center;padding:60px 20px 80px;background:linear-gradient(to bottom,transparent,rgba(184,151,90,.04))}
+.cta-bottom h2{font-size:32px;font-weight:300;margin-bottom:16px}
+.cta-bottom p{color:var(--dim);margin-bottom:32px}
+footer{text-align:center;padding:30px;border-top:1px solid var(--border);color:var(--dim);font-size:12px}
+@media(max-width:900px){.plans{grid-template-columns:1fr;padding:0 20px 60px}nav{padding:16px 24px}.nav-links{display:none}.compare{padding:0 20px}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">OS — OTTO STRATEGİC</a>
+  <div class="nav-links">
+    <a href="/#features">Özellikler</a>
+    <a href="/pricing.html">Fiyatlandırma</a>
+    <a href="/#faq">SSS</a>
+    <a href="mailto:info@ottostrategic.com">İletişim</a>
+  </div>
+  <a href="/dashboard" class="btn-outline">Klinik Girişi</a>
+</nav>
+
+<header>
+  <h1>Şeffaf <span>Fiyatlandırma</span></h1>
+  <p>İhtiyacınıza göre büyüyen planlar. Tüm planlarda 14 gün ücretsiz deneme.</p>
+  <div class="toggle">
+    <button class="active" onclick="setP('m')">Aylık</button>
+    <button onclick="setP('y')">Yıllık <span class="badge-save">%20 İndirim</span></button>
+  </div>
+</header>
+
+<div class="plans">
+  <!-- STARTER -->
+  <div class="plan">
+    <div class="plan-name">Starter</div>
+    <div class="plan-price" id="p0"><span>₺</span>14.900<span>/ay</span></div>
+    <div class="plan-sub">Yıllık ödemede ₺11.920/ay</div>
+    <div class="plan-limit">1 Hekim • 5 Personel</div>
+    <hr>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">7/24 WhatsApp Otto (Temel)</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Otomatik randevu alma</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Hasta yönetimi</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Randevu + hatırlatma sistemi</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Tedavi planları</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Temel finansal takip</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Temel dashboard & raporlar</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">KVKK uyumlu, AES-256</span></div>
+    <div class="feat"><span class="icon no">○</span><span class="feat-label dim">Doktor AI Asistanı</span></div>
+    <div class="feat"><span class="icon no">○</span><span class="feat-label dim">Hasta Geri Kazanım</span></div>
+    <div class="feat"><span class="icon no">○</span><span class="feat-label dim">Tedavi Dönüşüm Skoru</span></div>
+    <button class="plan-cta outline" onclick="location.href='/dashboard'">14 Gün Ücretsiz Dene</button>
+  </div>
+
+  <!-- PRO -->
+  <div class="plan popular">
+    <div class="pop-badge">EN POPÜLER</div>
+    <div class="plan-name">Pro</div>
+    <div class="plan-price" id="p1"><span>₺</span>24.900<span>/ay</span></div>
+    <div class="plan-sub">Yıllık ödemede ₺19.920/ay</div>
+    <div class="plan-limit">3 Hekim • 15 Personel</div>
+    <hr>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Starter'ın tüm özellikleri</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">WhatsApp Otto — Tam AI</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Doktor AI Asistanı</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Gelişmiş raporlar & KPI</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">No-show recovery otomasyonu</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Tedavi sonrası takip mesajları</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Öncelikli destek</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label" style="color:var(--gold)">🆕 Hasta Geri Kazanım Otto<span class="feat-new">YENİ</span></span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label" style="color:var(--gold)">🆕 Tedavi Dönüşüm Skoru<span class="feat-new">YENİ</span></span></div>
+    <button class="plan-cta gold" onclick="location.href='/dashboard'">14 Gün Ücretsiz Dene</button>
+  </div>
+
+  <!-- KURUMSAL -->
+  <div class="plan">
+    <div class="plan-name">Kurumsal</div>
+    <div class="plan-price">İletişime Geçin</div>
+    <div class="plan-sub">Multi-klinik grupları için</div>
+    <div class="plan-limit">Sınırsız Hekim & Personel</div>
+    <hr>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Pro'nun tüm özellikleri</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Multi-klinik yönetimi</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Özel entegrasyonlar</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">SLA garantisi</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Dedicated Account Manager</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">7/24 öncelikli destek</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Özel raporlama & analitik</span></div>
+    <div class="feat"><span class="icon">✦</span><span class="feat-label">Beyaz etiket seçeneği</span></div>
+    <button class="plan-cta dark" onclick="location.href='mailto:info@ottostrategic.com'">Teklif Al</button>
+  </div>
+</div>
+
+<!-- Özellik karşılaştırma tablosu -->
+<div class="compare">
+  <h2>Detaylı Karşılaştırma</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Özellik</th>
+        <th>Starter</th>
+        <th>Pro</th>
+        <th>Kurumsal</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="4" style="color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:20px">WhatsApp Otto</td></tr>
+      <tr><td>7/24 Otomatik Randevu</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>AI Destekli Yanıt (Claude)</td><td class="x">—</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Hatırlatma zinciri (24h + 2h)</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>No-show Recovery</td><td class="x">—</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td colspan="4" style="color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:20px">Klinik Yönetimi</td></tr>
+      <tr><td>Hasta Kayıtları & Geçmişi</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Randevu Takvimi</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Tedavi Planları</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Doktor Portalı</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Hasta Portalı</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Doktor AI Asistanı</td><td class="x">—</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Multi-klinik</td><td class="x">—</td><td class="x">—</td><td class="check">✦</td></tr>
+      <tr><td colspan="4" style="color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:20px">Finans & Analitik</td></tr>
+      <tr><td>Finansal Takip</td><td>Temel</td><td>Gelişmiş</td><td>Tam</td></tr>
+      <tr><td>KPI Dashboard</td><td>Temel</td><td>Gelişmiş</td><td>Özel</td></tr>
+      <tr><td>Gelir & Tahsilat Raporları</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td colspan="4" style="color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:20px">🆕 Sadece Otto'da</td></tr>
+      <tr><td>Hasta Geri Kazanım Otomasyonu <span class="new">YENİ</span></td><td class="x">—</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Tedavi Dönüşüm Skoru <span class="new">YENİ</span></td><td class="x">—</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td colspan="4" style="color:var(--gold);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding-top:20px">Güvenlik & Destek</td></tr>
+      <tr><td>KVKK Uyumlu</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>AES-256 Şifreleme</td><td class="check">✦</td><td class="check">✦</td><td class="check">✦</td></tr>
+      <tr><td>Destek</td><td>Email</td><td>Öncelikli</td><td>7/24 Dedicated</td></tr>
+      <tr><td>Ücretsiz Deneme</td><td>14 Gün</td><td>14 Gün</td><td>14 Gün</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- FAQ -->
+<div class="faq">
+  <h2>Sıkça Sorulan Sorular</h2>
+  <div class="faq-item"><div class="faq-q" onclick="tog(this)">Ücretsiz başlayabilir miyim? <span>+</span></div><div class="faq-a">Evet. Tüm planlarda 14 gün boyunca kredi kartı gerekmeden tüm özellikleri kullanabilirsiniz. Deneme süresi sonunda ister devam edin ister iptal edin.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="tog(this)">WhatsApp AI nasıl çalışıyor? <span>+</span></div><div class="faq-a">Hastanız size WhatsApp'tan yazar. Otto doğal dil ile Türkçe anlar, müsait saatleri gösterir, randevu alır, onay gönderir. Siz uyurken bile çalışır.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="tog(this)">Hasta Geri Kazanım Otomasyonu nedir? <span>+</span></div><div class="faq-a">6+ aydır gelmeyen hastalarınızı Otto otomatik tespit eder ve kişiselleştirilmiş WhatsApp mesajı gönderir. "Merhaba Ayşe Hanım, son kontrolünüzün üzerinden 8 ay geçti..." Rakiplerde bulunmayan özellik.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="tog(this)">Tedavi Dönüşüm Skoru ne işe yarar? <span>+</span></div><div class="faq-a">Hasta muayeneye geldiğinde Otto, bu hastanın önerilen tedaviyi kabul etme ihtimalini 0-100 arasında skorlar ve doktoru hazırlar. Dönüşüm oranını artırır.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="tog(this)">Mevcut hasta verilerimi aktarabilir miyim? <span>+</span></div><div class="faq-a">Evet. Excel, CSV veya diğer dental yazılımlardan veri aktarımı yapabilirsiniz. Kurulum desteğimiz ücretsizdir.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="tog(this)">Sözleşme zorunluluğu var mı? <span>+</span></div><div class="faq-a">Hayır. Aylık veya yıllık ödeme seçenekleri mevcuttur. Yıllık ödemede %20 indirim uygulanır. İstediğiniz an iptal edebilirsiniz.</div></div>
+</div>
+
+<div class="cta-bottom">
+  <h2>Hemen Başlayın</h2>
+  <p>14 gün ücretsiz deneyin. Kredi kartı gerekmez.</p>
+  <a href="/dashboard" class="btn-gold" style="display:inline-block;text-decoration:none;padding:14px 40px;font-size:14px;letter-spacing:.08em">ÜCRETSİZ DENE →</a>
+</div>
+
+<footer>© 2026 Otto Strategic. Tüm hakları saklıdır. · <a href="mailto:info@ottostrategic.com">info@ottostrategic.com</a></footer>
+
+<script>
+const prices={m:[14900,24900],y:[11920,19920]};
+function setP(t){
+  document.querySelectorAll('.toggle button').forEach((b,i)=>b.classList.toggle('active',i===(t==='m'?0:1)));
+  [0,1].forEach(i=>{
+    const el=document.getElementById('p'+i);
+    if(el)el.innerHTML='<span>₺</span>'+prices[t][i].toLocaleString('tr')+'<span>/ay</span>';
+  });
+}
+function tog(el){
+  const a=el.nextElementSibling;
+  a.classList.toggle('open');
+  el.querySelector('span').textContent=a.classList.contains('open')?'−':'+';
+}
+</script>
+</body>
+</html>
